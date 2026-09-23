@@ -1,0 +1,17 @@
+{application, mcl_nvidia_pair, [
+    {description, "Realm-scoped bridge from a Macula realm to a local NVIDIA PAIR cluster"},
+    {vsn, "0.1.0"},
+    {registered, [mcl_nvidia_pair_sup]},
+    {mod, {mcl_nvidia_pair_app, []}},
+    {applications, [
+        kernel,
+        stdlib,
+        crypto,
+        %% Mesh SDK, realm identity, capabilities, health.
+        mcl_om
+    ]},
+    {env, []},
+    {modules, []},
+    {licenses, ["Apache-2.0"]},
+    {links, [{"GitHub", "https://github.com/macula-services/mcl-nvidia-pair"}]}
+]}.
