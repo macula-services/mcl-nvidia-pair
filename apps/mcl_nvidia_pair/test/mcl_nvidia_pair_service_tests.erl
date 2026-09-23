@@ -55,14 +55,94 @@ info_version_matches_the_application_test() ->
     #{version := Reported} = ?SERVICE:info(),
     ?assertEqual(list_to_binary(Vsn), Reported).
 
-health_is_green_test() ->
-    ?assertEqual(ok, ?SERVICE:health()).
+%% Health is whether the configured PAIR backend answers, not whether this
+%% process is alive: a bridge to nothing is not healthy.
+health_follows_the_pair_probe_test_() ->
+    {foreach,
+     fun() ->
+         _ = realm_key_configured(),
+         ok = meck:new(chat_to_pair, [passthrough])
+     end,
+     fun(_) -> meck:unload(chat_to_pair), unconfigure(undefined) end,
+     [fun() ->
+          ok = meck:expect(chat_to_pair, probe, fun() -> ok end),
+          ?assertEqual(ok, ?SERVICE:health())
+      end,
+      fun() ->
+          ok = meck:expect(chat_to_pair, probe, fun() -> {error, {pair_unreachable, econnrefused}} end),
+          ?assertEqual({degraded, {pair_unreachable, econnrefused}}, ?SERVICE:health())
+      end]}.
 
-%% An empty list is the correct answer for a service that does nothing yet. The
-%% assertion is here so that adding a capability breaks a test and makes someone
-%% write down what the service can now actually do.
-announces_no_capability_yet_test() ->
-    ?assertEqual([], ?SERVICE:capabilities()).
+%% One procedure, `Org/chat', and never open: macula admits a call only with a
+%% member UCAN the realm signed. The realm is named by its signing key's id,
+%% derived from the same `realm_key' mcl_om already pins, so the two cannot
+%% name different realms.
+announces_chat_gated_on_realm_membership_test_() ->
+    {setup, fun realm_key_configured/0, fun unconfigure/1,
+     fun(KeyId) ->
+        [?_assertEqual([#{name => <<"chat">>,
+                          version => 1,
+                          handler => {mcl_nvidia_pair_mesh_rpc, []},
+                          auth => {realm_member_required, KeyId, <<"member/email-verified">>}}],
+                       ?SERVICE:capabilities())]
+     end}.
+
+%% `member/email-verified' is what macula-realm puts in a member token by
+%% default; a deployment that wants another tier says so explicitly.
+required_can_is_configurable_test_() ->
+    {setup,
+     fun() ->
+         KeyId = realm_key_configured(),
+         application:set_env(mcl_nvidia_pair, required_can, <<"member/device">>),
+         KeyId
+     end,
+     fun(K) -> application:unset_env(mcl_nvidia_pair, required_can), unconfigure(K) end,
+     fun(KeyId) ->
+        [?_assertMatch([#{auth := {realm_member_required, KeyId, <<"member/device">>}}],
+                       ?SERVICE:capabilities())]
+     end}.
+
+%% With no realm key there is nothing to gate on, and the answer is to serve
+%% nobody, never to fall back to an open procedure.
+announces_nothing_without_a_realm_key_test() ->
+    application:set_env(mcl_om, org, <<"mcl-nvidia-pair">>),
+    application:unset_env(mcl_om, realm_key),
+    ?assertEqual([], ?SERVICE:capabilities()),
+    application:unset_env(mcl_om, org).
+
+%% The wire name is `Org/chat' and the realm's grant names the org, so an
+%% unset org (mcl_om's `_' placeholder) or a malformed one announces nothing.
+announces_nothing_without_a_real_org_test_() ->
+    {setup, fun realm_key_configured/0, fun unconfigure/1,
+     fun(_KeyId) ->
+        [fun() ->
+             application:set_env(mcl_om, org, Org),
+             ?assertEqual([], ?SERVICE:capabilities())
+         end || Org <- [<<"_">>, <<"Not An Org">>, <<>>]]
+     end}.
+
+%% Not configured to serve is not healthy: a bridge nobody can reach reports
+%% it on /health rather than going quietly dark.
+unconfigured_is_degraded_test() ->
+    ok = meck:new(chat_to_pair, [passthrough]),
+    ok = meck:expect(chat_to_pair, probe, fun() -> ok end),
+    application:unset_env(mcl_om, realm_key),
+    Health = ?SERVICE:health(),
+    meck:unload(chat_to_pair),
+    ?assertEqual({degraded, not_configured_to_serve}, Health).
+
+realm_key_configured() ->
+    application:load(macula),
+    application:set_env(macula, crypto_profile, pq_hybrid),
+    {ok, Key} = macula_node_keys:generate(realm, pq_hybrid),
+    Public = macula_node_keys:public_key(Key),
+    application:set_env(mcl_om, realm_key, binary:encode_hex(Public, lowercase)),
+    application:set_env(mcl_om, org, <<"mcl-nvidia-pair">>),
+    macula_node_keys:key_id(Public, pq_hybrid).
+
+unconfigure(_KeyId) ->
+    application:unset_env(mcl_om, realm_key),
+    application:unset_env(mcl_om, org).
 
 identity_spec_has_the_shape_mcl_om_expects_test() ->
     #{scope := Scope, actions := Actions,
@@ -72,12 +152,12 @@ identity_spec_has_the_shape_mcl_om_expects_test() ->
     ?assert(is_list(Resources)),
     ?assert(is_integer(Ttl) andalso Ttl > 0).
 
-%% A resource this service is not authorised for is a publish the realm would
-%% refuse once UCAN delegation lands. Asking for nothing and claiming nothing
-%% must stay in step, so the two are asserted together.
-authority_matches_what_is_announced_test() ->
+%% Serving `Org/chat' is authorised by the realm's D25 grant for this node,
+%% which /health reports under `provider_grants'; identity_spec/0's actions and
+%% resources are not consulted by mcl_om. So it claims nothing, as mcl-echo's
+%% does, rather than listing an authority nothing checks.
+identity_spec_claims_nothing_test() ->
     #{actions := Actions, resources := Resources} = ?SERVICE:identity_spec(),
-    ?assertEqual([], ?SERVICE:capabilities()),
     ?assertEqual([], Actions),
     ?assertEqual([], Resources).
 

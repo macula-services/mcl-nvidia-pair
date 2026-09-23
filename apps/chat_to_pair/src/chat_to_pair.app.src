@@ -1,0 +1,12 @@
+{application, chat_to_pair, [
+    {description, "Chat to PAIR -- forwards a realm-authorized chat request to a local NVIDIA PAIR cluster (CMD)"},
+    {vsn, "0.1.0"},
+    {registered, []},
+    {mod, {chat_to_pair_app, []}},
+    {applications, [
+        kernel, stdlib, crypto, inets, ssl, jsx
+    ]},
+    {env, []},
+    {modules, []},
+    {licenses, ["Apache-2.0"]}
+]}.

@@ -1,86 +1,93 @@
 # mcl-nvidia-pair
 
-**Realm-scoped bridge from a Macula realm to a local NVIDIA PAIR cluster**
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/macula-erl-full-dark.svg">
+    <img src="assets/macula-erl-full-light.svg" alt="Macula" width="320">
+  </picture>
+</p>
 
-## Status: scaffold
+<p align="center">
+  <strong>A bridge between a household's own NVIDIA PAIR cluster and a Macula realm</strong>
+</p>
 
-The service boots, joins the mesh and answers `/health` on 8499. It
-does nothing else yet.
+## Status: skeleton, not yet in service
 
-It announces no capability and asks the realm for no authority, because it can do
-nothing yet. Both lists grow when the thing they name exists. Advertising a
-capability before it exists puts a lie on the mesh where another service can find
-it and call it.
+This is an early, unfinished service. Read this section before anything else.
+
+**What exists and is tested:** the code for one narrow path (a chat request in, a
+response out), a gate that lets only members of one realm call it, and a
+per-caller rate limit. It compiles on Erlang/OTP 28.4.3 against macula 12, and
+its unit tests pass. Those tests replace NVIDIA PAIR and the mesh with stand-ins.
+
+**What has not happened yet:**
+
+- It has never forwarded a live request from the mesh to a real PAIR cluster.
+- No realm member has ever passed its gate over the mesh. The gate relies on
+  membership tokens that macula-realm issues under macula 12; that issuance
+  exists in macula-realm's code, and nobody has yet run it end to end with this
+  service.
+- It is not deployed anywhere.
+- It does no cluster introspection, runs one bridge per cluster with no
+  redundancy, and has not been measured under load.
+
+## What it is meant to become
+
+[NVIDIA PAIR](https://github.com/NVIDIA/Personal-AI-Router) (Personal AI Router)
+turns a household's own machines into one local inference cluster: LAN-scoped,
+Ollama- and OpenAI-compatible, with no changes needed to the programs that use
+it. This service does not reimplement any of that. It sits next to an unmodified
+PAIR install as a thin translator, so that members of a
+[Macula](https://github.com/macula-io/macula) realm can use that cluster from
+elsewhere, and nobody outside the realm can:
+
+```
+Macula realm  <--(macula 12 RPC, realm members only)-->  mcl-nvidia-pair  <--(loopback HTTP)-->  PAIR cluster
+  (wide area, post-quantum)                                (this repo)          (unmodified, LAN only)
+```
+
+- **Realm side:** it offers one procedure, `<org>/chat`, to the realm. Macula
+  admits a call only with a membership token the realm signed, carrying the
+  required tier (`member/email-verified` by default). The check happens in
+  macula before the call reaches this service's code.
+- **PAIR side:** it forwards an accepted chat request to PAIR's own
+  Ollama-compatible proxy on the same machine, over plain loopback HTTP. No change
+  to PAIR, no pairing, no extra certificates. That is also why it must run on a
+  machine that is already a member of the PAIR cluster.
+
+It implements exactly one operation and builds the outbound request itself. It
+never forwards a caller's path, so PAIR's own admin surface (`/api/pull`,
+`/api/delete`, engine control) is not reachable from the realm.
+
+How the design was arrived at, and what it rejected:
+[`plans/DESIGN_FEASIBILITY_ASSESSMENT.md`](plans/DESIGN_FEASIBILITY_ASSESSMENT.md).
+
+## Layout
+
+```
+apps/mcl_nvidia_pair/        The service: boots on mcl_om, offers <org>/chat, reports /health
+apps/chat_to_pair/           Forwards one authorised chat request to PAIR's loopback proxy
+apps/throttle_pair_callers/  Per-caller fixed-window rate limit (macula has no inbound throttle)
+config/                      sys.config.src, filled from the environment at boot
+deploy/                      docker-compose.yml, the service's own run contract
+plans/                       The design and how it was reached
+docs/                        Getting started
+```
 
 ## Running it
+
+Erlang/OTP 28.4.3 and rebar3 (see `.tool-versions`).
 
     rebar3 compile
     rebar3 eunit
     rebar3 lint
 
-    scripts/health.sh                      # against a running node
+See [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md) for configuration and
+for trying the PAIR side against a real local install.
 
-Building the image needs a Rust toolchain, because macula ships a QUIC NIF and
-the alpine build compiles it from source rather than fetching one linked against
-a different libc.
-
-    podman build -t mcl-nvidia-pair -f Containerfile .
-
-## Configuration
-
-| Variable | Default | Meaning |
-|----------|---------|---------|
-| `MCL_REALM` | required | 64-hex realm tag, the `sha256` of the realm's name. No default: a service that guesses its realm announces itself where nobody can attribute it. |
-| `MCL_REALM_KEY` | required | The realm's public signing key, hex encoded: the **trust anchor**, not an identifier. Every org-namespaced advertisement is verified against it, so without it nothing resolves, the boot claim never reaches the realm, and the service stays green while unreachable. Public material, not a secret. |
-| `MACULA_STATION_SEEDS` | required | Station hosts to dial, `host[:port]`, comma-separated. No default: naming a realm costs nothing, dialling a production station from every dev clone does. |
-| `MACULA_STATION_NODE_IDS` | required | The matching 64-hex station node ids, comma-separated, index-paired with the seeds. The 11.x dial is pinned (D5): mcl_om refuses to boot a pool with an unpinned seed. |
-| `MCL_HEALTH_PORT` | `8499` | Health endpoint. Host networking makes a collision a silent bind failure, so check the host before changing.  |
-| `MCL_NODE_NAME` | `mcl_nvidia_pair` | Erlang node name. |
-| `MCL_NODE_HOST` | `127.0.0.1` | Erlang node host. |
-| `MCL_COOKIE` | `mcl_nvidia_pair` | Erlang cookie. |
-
-`deploy/docker-compose.yml` runs it, and carries what the service knows about
-itself. If you deploy through something else, let that carry **placement**: which
-host, which station, which realm, which secret store. Keeping the two apart is
-what stops a config table in a README and the real environment drifting.
-
-## Deployment
-
-CI builds on every push to `main` and pushes
-`ghcr.io/macula-services/mcl-nvidia-pair:latest` plus the semver tag. Pull `:latest` under
-watchtower and a merge is a deploy, while a rollback is pinning to a semver tag.
-
-Two things CI cannot do for you, both of which have bitten:
-
-1. The registry package may be created **private**, and the pull then fails on
-   the host with a bare `unauthorized` that names nothing. Check it after the
-   first build. On ghcr the `org.opencontainers.image.source` label in the
-   Containerfile is what links the package to the repository.
-2. The host needs `MCL_REALM` and the pinned station pair supplied from
-   somewhere they are not committed.
-
-## The service contract
-
-Six callbacks in `mcl_nvidia_pair_service`, all required, all resolved **by name** by
-`mcl_om` at startup on a live node. The `-behaviour(mcl_om_service)`
-attribute turns a missing one into a compile error rather than an `undef` where
-nobody is watching, and the eunit suite guards the attribute itself.
-
-### Adding a store later
-
-This service has no `reckon-db` store, which is the right answer for most. The
-reckon-db applications run either way; what a store adds is a data directory, an
-open handle, and something written.
-
-The cheapest way to get one is to scaffold again with `store=1`, which generates
-the callbacks, the config and the guards together.
-
-⚠ **By hand it is three things and not one, and the missing third crash-loops the
-node.** Export `store_id/0` and `data_dir/0`; add the `evoq` adapter block to
-`config/sys.config.src`, without which boot raises
-`{not_configured, event_store_adapter}` before any service code runs; and mount a
-volume in the compose file. A sibling service put two of three fleet nodes into a
-boot loop by doing the first and not the second.
+`/health` (port 8499) reports three things: whether the configured PAIR backend
+answers, whether the service is configured to serve at all, and, from mcl_om,
+whether the realm has granted this node its procedure.
 
 ## Licence
 

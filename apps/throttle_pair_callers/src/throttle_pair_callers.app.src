@@ -1,0 +1,12 @@
+{application, throttle_pair_callers, [
+    {description, "Throttle PAIR callers -- per-caller fixed-window rate limit on mcl-nvidia-pair/chat (CMD)"},
+    {vsn, "0.1.0"},
+    {registered, [throttle_pair_callers]},
+    {mod, {throttle_pair_callers_app, []}},
+    {applications, [
+        kernel, stdlib
+    ]},
+    {env, []},
+    {modules, []},
+    {licenses, ["Apache-2.0"]}
+]}.

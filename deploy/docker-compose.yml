@@ -3,7 +3,8 @@
 # Runnable as-is. It carries what the SERVICE knows about itself: its image, its
 # port, the environment variables its own code reads, and its health check.
 #
-#   MCL_REALM=<64-hex> \
+#   MCL_ORG=mcl-nvidia-pair \
+#     MCL_REALM=<64-hex> \
 #     MCL_REALM_KEY=<hex of the realm's public signing key> \
 #     MACULA_STATION_SEEDS=station.example:4433 \
 #     MACULA_STATION_NODE_IDS=<64-hex node id of that station> \
@@ -37,6 +38,9 @@ services:
       # recreates the container. Harmless otherwise.
       - "com.centurylinklabs.watchtower.enable=true"
     environment:
+      # The org the wire name `Org/chat' is in, and the one the realm's grant
+      # names. No default, for the same reason as the realm below.
+      - MCL_ORG=${MCL_ORG:?set MCL_ORG to the service org (mcl-nvidia-pair)}
       # No default. A service that guesses its realm announces itself where
       # nobody can attribute it, and that looks exactly like a healthy node.
       - MCL_REALM=${MCL_REALM:?set MCL_REALM to the 64-hex realm tag}
@@ -47,7 +51,7 @@ services:
       # unreachable. Public material, so it belongs here and not in secrets.
       - MCL_REALM_KEY=${MCL_REALM_KEY:?set MCL_REALM_KEY to the hex-encoded public realm signing key}
       # No default either: naming a realm costs nothing, dialling somebody's
-      # production station from every dev clone does. The 11.x dial is PINNED:
+      # production station from every dev clone does. The dial is PINNED:
       # every seed host pairs with its station's node id, index for index
       # (D5) -- mcl_om refuses to boot a pool with an unpinned seed, since
       # that dial could never connect anyway.

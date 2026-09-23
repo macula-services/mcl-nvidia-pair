@@ -8,7 +8,10 @@
         stdlib,
         crypto,
         %% Mesh SDK, realm identity, capabilities, health.
-        mcl_om
+        mcl_om,
+        %% The two slices: the forward to PAIR, and the per-caller limit.
+        chat_to_pair,
+        throttle_pair_callers
     ]},
     {env, []},
     {modules, []},
