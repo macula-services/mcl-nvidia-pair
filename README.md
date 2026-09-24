@@ -62,6 +62,11 @@ never forwards a caller's path, so PAIR's own admin surface (`/api/pull`,
 How the design was arrived at, and what it rejected:
 [`plans/DESIGN_FEASIBILITY_ASSESSMENT.md`](plans/DESIGN_FEASIBILITY_ASSESSMENT.md).
 
+Like every mcl service, it also answers `mcl-nvidia-pair/info`, which mcl_om adds: its
+name, version and description, its org and claim labels, node id, the macula
+and mcl_om versions, uptime, the health word and the procedures it advertises.
+Open to any mesh caller, public facts only.
+
 ## Layout
 
 ```
