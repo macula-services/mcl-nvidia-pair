@@ -168,8 +168,14 @@ supervisor_starts_and_stops_test() ->
     {ok, Pid} = mcl_nvidia_pair_sup:start_link(),
     ?assert(is_process_alive(Pid)),
     ?assertEqual([], supervisor:which_children(Pid)),
+    %% Registered, so wait until it is really gone: exit/2 returns before the
+    %% process dies, and a later start would find the name still taken.
+    Ref = monitor(process, Pid),
     unlink(Pid),
-    exit(Pid, shutdown).
+    exit(Pid, shutdown),
+    receive {'DOWN', Ref, process, Pid, _} -> ok
+    after 5000 -> error({still_alive, Pid})
+    end.
 
 %%==============================================================================
 %% The runtime is pinned in two places, and neither is the one you are running

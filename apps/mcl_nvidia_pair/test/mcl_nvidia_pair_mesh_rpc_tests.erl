@@ -19,12 +19,22 @@ setup() ->
     ok = meck:new(chat_to_pair, [non_strict]),
     Throttle.
 
+%% The throttle is registered, so the next case's setup can only start its
+%% own once this one is really gone: exit/2 alone returns before the process
+%% dies, and CI once lost that race with {already_started, Pid}.
 cleanup(Throttle) ->
     meck:unload(chat_to_pair),
-    unlink(Throttle),
-    exit(Throttle, shutdown),
+    stopped(Throttle),
     application:unset_env(throttle_pair_callers, max_per_window),
     application:unset_env(throttle_pair_callers, window_seconds).
+
+stopped(Pid) ->
+    Ref = monitor(process, Pid),
+    unlink(Pid),
+    exit(Pid, shutdown),
+    receive {'DOWN', Ref, process, Pid, _} -> ok
+    after 5000 -> error({still_alive, Pid})
+    end.
 
 payload(Extra) ->
     maps:merge(#{caller => ?CALLER,
