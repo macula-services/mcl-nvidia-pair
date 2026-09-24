@@ -46,7 +46,7 @@ Macula realm  <--(macula 12 RPC, realm members only)-->  mcl-nvidia-pair  <--(lo
   (wide area, post-quantum)                                (this repo)          (unmodified, LAN only)
 ```
 
-- **Realm side:** it offers one procedure, `<org>/chat`, to the realm. Macula
+- **Realm side:** it offers one procedure, `mcl-nvidia-pair/chat`, to the realm. Macula
   admits a call only with a membership token the realm signed, carrying the
   required tier (`member/email-verified` by default). The check happens in
   macula before the call reaches this service's code.
@@ -65,7 +65,7 @@ How the design was arrived at, and what it rejected:
 ## Layout
 
 ```
-apps/mcl_nvidia_pair/        The service: boots on mcl_om, offers <org>/chat, reports /health
+apps/mcl_nvidia_pair/        The service: boots on mcl_om, offers mcl-nvidia-pair/chat, reports /health
 apps/chat_to_pair/           Forwards one authorised chat request to PAIR's loopback proxy
 apps/throttle_pair_callers/  Per-caller fixed-window rate limit (macula has no inbound throttle)
 config/                      sys.config.src, filled from the environment at boot

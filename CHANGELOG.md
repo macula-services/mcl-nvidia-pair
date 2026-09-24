@@ -7,6 +7,18 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Changed
+
+- On `mcl_om` 0.27. The boot claim carries `MCL_SERVICE_NAME=mcl-nvidia-pair`
+  and the host's `MCL_BOX`, shown on the realm's Providers desk. 0.27 no longer
+  brings barrel_docdb or rocksdb.
+- The org is fixed in `config/sys.config.src`, `mcl-nvidia-pair`, instead of
+  `MCL_ORG` from the deploy: it is a property of the service. The procedure is
+  `mcl-nvidia-pair/chat`.
+- The team image pair: builds in `macula-ci-otp` and runs on `macula-pq-runtime`
+  (Debian trixie), pinned by dated tag and digest, instead of an Alpine builder
+  and a floating `alpine:3.22` runtime. CI runs in the same build image.
+
 ### Added
 
 - The first slice, ported to macula 12 and mcl_om 0.26.3 from its predecessor

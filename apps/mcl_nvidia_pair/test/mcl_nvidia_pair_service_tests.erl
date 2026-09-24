@@ -199,18 +199,30 @@ supervisor_starts_and_stops_test() ->
 %% re-pushed tag cannot change what builds), lint's image and the release its
 %% toolchain step insists on, .tool-versions, and this VM.
 the_runtime_agrees_between_the_image_the_ci_and_this_vm_test() ->
-    Image = pinned("Containerfile",
-                   "^FROM docker\\.io/(?:hexpm/)?erlang:([0-9]+\\.[0-9]+\\.[0-9]+)"
-                   "-alpine[^@\\s]*@sha256:[0-9a-f]{64} AS builder$"),
-    CiImage = pinned(".github/workflows/lint.yml",
-                     "^\\s+image: docker\\.io/(?:hexpm/)?erlang:([0-9]+\\.[0-9]+\\.[0-9]+)"
-                     "[^@\\s]*@sha256:[0-9a-f]{64}$"),
-    CiCheck = pinned(".github/workflows/lint.yml",
-                     "\\{<<\"([0-9]+\\.[0-9]+\\.[0-9]+)\">>, true\\} -> halt\\(0\\);"),
+    %% The team images' tags name a date, not a release, so the builder and
+    %% lint each assert the release in a check step; this compares those, the
+    %% .tool-versions pin and this VM, to the patch.
+    Check = "\\{<<\"([0-9]+\\.[0-9]+\\.[0-9]+)\">>, true\\} -> halt\\(0\\);",
+    Image = pinned("Containerfile", Check),
+    CiCheck = pinned(".github/workflows/lint.yml", Check),
     Tools = pinned(".tool-versions", "^erlang ([0-9]+\\.[0-9]+\\.[0-9]+)$"),
     %% Sorted and deduplicated, so a failure prints every version rather than
     %% the first pair that happened to be compared.
-    ?assertEqual([Image], lists:usort([Image, CiImage, CiCheck, Tools, running_otp()])).
+    ?assertEqual([Image], lists:usort([Image, CiCheck, Tools, running_otp()])).
+
+%% Build, CI and runtime are the team pair, named by dated tag AND digest, so a
+%% re-pushed tag cannot change what builds or what runs.
+images_are_the_digest_pinned_team_pair_test() ->
+    Digest = ":[0-9]{8}-[0-9]{4}@sha256:[0-9a-f]{64}",
+    ?assertMatch(<<_/binary>>,
+                 pinned("Containerfile",
+                        "^FROM (ghcr\\.io/macula-io/macula-ci-otp)" ++ Digest ++ " AS builder$")),
+    ?assertMatch(<<_/binary>>,
+                 pinned("Containerfile",
+                        "^FROM (ghcr\\.io/macula-io/macula-pq-runtime)" ++ Digest ++ "$")),
+    ?assertMatch(<<_/binary>>,
+                 pinned(".github/workflows/lint.yml",
+                        "^\\s+image: (ghcr\\.io/macula-io/macula-ci-otp)" ++ Digest ++ "$")).
 
 %% The full release, 28.4.3 and not 28: `otp_release' names only the major.
 running_otp() ->
@@ -237,3 +249,30 @@ climb(Dir, Name, Left) ->
 found(true, Candidate, _Dir, _Name, _Left) -> Candidate;
 found(false, _Candidate, Dir, Name, Left) ->
     climb(filename:dirname(Dir), Name, Left - 1).
+
+%% The org is the service's own, named after the repository, and fixed in
+%% config rather than taken from the deploy environment.
+the_org_is_fixed_in_config_test() ->
+    {ok, Text} = file:read_file(alongside("config/sys.config.src")),
+    ?assertMatch({match, _}, re:run(Text, <<"\\{org, +<<\"mcl-nvidia-pair\">>\\}">>)),
+    ?assertEqual(nomatch, binary:match(Text, <<"MCL_ORG">>)).
+
+%%==============================================================================
+%% The boot claim names the service and its box
+%%==============================================================================
+
+%% Every node that claims on the realm shows its service and host on the
+%% Providers desk: mcl_om 0.27 reads MCL_SERVICE_NAME and MCL_BOX. The service
+%% name is ours; the box is the deploying host's to say.
+the_claim_names_the_service_and_its_box_test() ->
+    {ok, Text} = file:read_file(alongside("deploy/docker-compose.yml")),
+    ?assertMatch({match, _}, re:run(Text, <<"- MCL_SERVICE_NAME=mcl-nvidia-pair\\n">>)),
+    ?assertMatch({match, _}, re:run(Text, <<"- MCL_BOX=\\$\\{MCL_BOX:-\\}\\n">>)).
+
+%% ⚠ NOT IN sys.config. mcl_om prefers its app env to the OS variables, so a
+%% `service_name' or `box' line there, even an empty one, would hide the two
+%% variables above (until mcl_om 0.27.1 treats empty as unset).
+the_claim_labels_are_not_shadowed_by_app_env_test() ->
+    {ok, Text} = file:read_file(alongside("config/sys.config.src")),
+    ?assertEqual(nomatch, re:run(Text, <<"^\\s*\\{(service_name|box),">>, [multiline])).
+

@@ -21,11 +21,11 @@
         %% shell and expecting that to be enough has cost a sibling service an
         %% hour, because nothing translates between the two by itself.
         {realm,             <<"${MCL_REALM}">>},
-        %% The wire namespace: `Org/chat'. Deploy config, not code, one org
-        %% per service; the realm's D25 grant names it. Unset, mcl_om uses the
-        %% `_' placeholder and this service announces nothing (see
-        %% mcl_nvidia_pair_service:capabilities/0).
-        {org,               <<"${MCL_ORG}">>},
+        %% ONE ORG PER SERVICE, NAMED AFTER THE REPOSITORY: the wire namespace
+        %% `mcl-nvidia-pair/chat', and the org the realm's D25 grant names.
+        %% Fixed here rather than read from the environment, because it is a
+        %% property of the service, not of where it runs.
+        {org,               <<"mcl-nvidia-pair">>},
         %% ⚠ THE TRUST ANCHOR, AND IT IS NOT OPTIONAL. MCL_REALM above is an
         %% IDENTIFIER (sha256 of the realm name); this is the realm's public
         %% SIGNING KEY, 64-hex-per-32-bytes, as carried. mcl_om decodes it and

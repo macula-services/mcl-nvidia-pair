@@ -35,12 +35,16 @@ substituted into `config/sys.config.src` when the release boots.
 
 | Variable | Required | What it is |
 |---|---|---|
-| `MCL_ORG` | yes, to serve | The org the procedure lives in: the wire name is `<org>/chat`, and the realm's grant names this org. |
 | `MCL_REALM` | yes | The realm tag: 64 hex characters, the sha256 of the realm's name. |
 | `MCL_REALM_KEY` | yes | The realm's public signing key, hex. It is the trust anchor for the mesh, and the membership gate is derived from it: macula admits a caller only with a member token signed by this key. |
 | `MACULA_STATION_SEEDS` | yes | Station hosts to dial, `host[:port]`, comma-separated. |
 | `MACULA_STATION_NODE_IDS` | yes | The matching station node ids, index-paired with the seeds. |
 | `MCL_HEALTH_PORT` | no, 8499 | The `/health` port. |
+| `MCL_SERVICE_NAME` | no, `mcl-nvidia-pair` in compose | Label on the boot claim the realm's operator sees on the Providers desk. |
+| `MCL_BOX` | no | Label naming the host, also on the boot claim. Set it where you deploy. |
+
+The org is fixed, `mcl-nvidia-pair`, in `config/sys.config.src`: the wire name
+is `mcl-nvidia-pair/chat`, and the realm's grant names that org.
 
 Tuning, as plain edits to `config/sys.config.src` (the code's defaults apply when
 absent):

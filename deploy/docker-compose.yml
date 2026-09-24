@@ -3,7 +3,6 @@
 # Runnable as-is. It carries what the SERVICE knows about itself: its image, its
 # port, the environment variables its own code reads, and its health check.
 #
-#   MCL_ORG=mcl-nvidia-pair \
 #     MCL_REALM=<64-hex> \
 #     MCL_REALM_KEY=<hex of the realm's public signing key> \
 #     MACULA_STATION_SEEDS=station.example:4433 \
@@ -38,9 +37,6 @@ services:
       # recreates the container. Harmless otherwise.
       - "com.centurylinklabs.watchtower.enable=true"
     environment:
-      # The org the wire name `Org/chat' is in, and the one the realm's grant
-      # names. No default, for the same reason as the realm below.
-      - MCL_ORG=${MCL_ORG:?set MCL_ORG to the service org (mcl-nvidia-pair)}
       # No default. A service that guesses its realm announces itself where
       # nobody can attribute it, and that looks exactly like a healthy node.
       - MCL_REALM=${MCL_REALM:?set MCL_REALM to the 64-hex realm tag}
@@ -62,6 +58,11 @@ services:
       - MCL_COOKIE=mcl_nvidia_pair
       # Host networking means a port already bound on this host fails SILENTLY.
       - MCL_HEALTH_PORT=8499
+      # Labels on the claim this service sends the realm at boot, which the
+      # realm's operator sees on the Providers desk: what is asking, and from
+      # which box. MCL_BOX comes from the host that deploys it.
+      - MCL_SERVICE_NAME=mcl-nvidia-pair
+      - MCL_BOX=${MCL_BOX:-}
 
 # The identity volume, NAMED HERE rather than left to the project name, so a
 # `docker compose -p` with a different name reuses the same key instead of
