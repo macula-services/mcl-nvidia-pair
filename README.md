@@ -60,7 +60,7 @@ never forwards a caller's path, so PAIR's own admin surface (`/api/pull`,
 `/api/delete`, engine control) is not reachable from the realm.
 
 How the design was arrived at, and what it rejected:
-[`plans/DESIGN_FEASIBILITY_ASSESSMENT.md`](plans/DESIGN_FEASIBILITY_ASSESSMENT.md).
+[`docs/DESIGN.md`](docs/DESIGN.md).
 
 Like every mcl service, it also answers `mcl-nvidia-pair/info`, which mcl_om adds: its
 name, version and description, its org and claim labels, node id, the macula
@@ -75,8 +75,7 @@ apps/chat_to_pair/           Forwards one authorised chat request to PAIR's loop
 apps/throttle_pair_callers/  Per-caller fixed-window rate limit (macula has no inbound throttle)
 config/                      sys.config.src, filled from the environment at boot
 deploy/                      docker-compose.yml, the service's own run contract
-plans/                       The design and how it was reached
-docs/                        Getting started
+docs/                        The design (and how it was reached), getting started
 ```
 
 ## Running it

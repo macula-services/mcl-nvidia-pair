@@ -7,7 +7,7 @@
 %%% request itself -- it never forwards an arbitrary path or method
 %%% from a realm caller. PAIR's own cluster-internal proxy has no route
 %%% filtering (any pinned LAN peer can reach /api/pull, /api/delete,
-%%% engine-control, etc. -- see plans/DESIGN_FEASIBILITY_ASSESSMENT.md);
+%%% engine-control, etc. -- see docs/DESIGN.md);
 %%% that surface is never exposed here because this module never
 %%% relays a caller-supplied path at all.
 %%%
