@@ -30,12 +30,15 @@ info_round_trip_test_() ->
           ?_assert(at_least(maps:get(macula_version, Reply), [12, 2]))]
      end}.
 
-%% A floor, not an exact release: the constraints (~> 0.28, ~> 12.2) take any
-%% later minor, and the rule is only that macula 12.2 or later never runs with
-%% an mcl_om older than 0.28. Same major, minor at least the floor's.
-at_least({text, Vsn}, [Major, Minor]) ->
-    [Ma, Mi | _] = [binary_to_integer(P) || P <- binary:split(Vsn, <<".">>, [global])],
-    Ma =:= Major andalso Mi >= Minor.
+%% A floor, not an exact release: the rule is only that macula 12.2 or later
+%% never runs with an mcl_om older than 0.28, so any later release satisfies it
+%% whatever major it is on -- macula 15.x (through mcl_om 1.0) is later than
+%% 12.2. Comparing major and minor as a pair is that "or later"; matching the
+%% major alone pinned the test to the 12 line and made a correct upgrade red.
+at_least({text, Vsn}, Floor) ->
+    [Ma, Mi | _] = [binary_to_integer(P)
+                    || P <- lists:sublist(binary:split(Vsn, <<".">>, [global]), 2)],
+    {Ma, Mi} >= list_to_tuple(Floor).
 
 %% The service must leave `info' to mcl_om: declaring its own refuses boot.
 the_service_does_not_declare_info_test_() ->
