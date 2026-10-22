@@ -62,7 +62,7 @@ Macula realm  <--(macula 12 RPC, realm members only)-->  mcl-nvidia-pair  <--(lo
   (wide area, post-quantum)                                (this repo)          (unmodified, LAN only)
 ```
 
-- **Realm side:** it offers one procedure, `mcl-nvidia-pair/chat`, to the realm. Macula
+- **Realm side:** it offers one procedure of its own, `mcl-nvidia-pair/chat`, to the realm. Macula
   admits a call only with a membership token the realm signed, carrying the
   required tier (`member/email-verified` by default). The check happens in
   macula before the call reaches this service's code.
