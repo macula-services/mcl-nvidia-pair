@@ -16,11 +16,11 @@ configured to serve at all.
 
 | Element | Kind | Role |
 | --- | --- | --- |
-| mcl-nvidia-pair | In scope | Its own procedure, `mcl-nvidia-pair/chat`, answered only for a realm member carrying the required tier; `/health` on 8499. It builds every request to PAIR itself |
+| mcl-nvidia-pair | In scope | Its own procedure, `mcl-nvidia-pair/chat`, answered only for a realm member carrying the required tier; `mcl_om` adds the open `mcl-nvidia-pair/info` and `mcl-nvidia-pair/get_limits` to every service, and `capabilities/0` is the list; `/health` on 8499. It builds every request to PAIR itself |
 | Realm member | Person | A person or program on the mesh holding a realm-signed member token. Its call is checked by macula before the handler runs |
 | Service operator | Person | Runs the bridge on a machine that is already a member of the PAIR cluster, and supplies the realm, its public key and the pinned stations |
-| macula-realm | Macula infrastructure | Issues the member token macula checks before a call reaches the handler; its D25 grant names `mcl-nvidia-pair/chat` for this node |
-| Macula stations, mesh DHT | Macula infrastructure | The bridge dials out to the pinned stations over QUIC, and the mesh DHT takes the capability it advertises |
+| macula-realm | Macula infrastructure | Issues the member token macula checks before a call reaches the handler; its D25 grants cover every procedure this node serves under the org, the open `info` and `get_limits` included |
+| Macula stations, mesh DHT | Macula infrastructure | The bridge dials out to the pinned stations over QUIC, and the mesh DHT takes the advertisements: the bridge's own procedure and the open `info` and `get_limits` |
 | NVIDIA PAIR cluster | External system | Unmodified and LAN-scoped; its Ollama-compatible proxy on `127.0.0.1:11434` does the routing, scheduling and failover for the household's own machines |
 
 The bridge is the only way in: a realm caller reaches `chat`,

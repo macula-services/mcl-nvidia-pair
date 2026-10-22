@@ -70,14 +70,14 @@
 <text class="t-type" x="76" y="466">[Macula infrastructure]</text>
 <text class="t-desc" x="76" y="490">Issues the member token macula</text>
 <text class="t-desc" x="76" y="506">checks before a call reaches the</text>
-<text class="t-desc" x="76" y="522">handler; its D25 grant names</text>
-<text class="t-desc" x="76" y="538">mcl-nvidia-pair/chat</text>
+<text class="t-desc" x="76" y="522">handler; its D25 grants cover</text>
+<text class="t-desc" x="76" y="538">every org procedure</text>
 <rect class="b-mac" x="360" y="420" width="280" height="120" rx="10"/>
 <text class="t-name" x="376" y="448">Macula stations, mesh DHT</text>
 <text class="t-type" x="376" y="466">[Macula infrastructure]</text>
 <text class="t-desc" x="376" y="490">The pinned stations are the</text>
 <text class="t-desc" x="376" y="506">bridge's entry points (QUIC); the</text>
-<text class="t-desc" x="376" y="522">DHT takes its advertisement</text>
+<text class="t-desc" x="376" y="522">DHT takes its advertisements</text>
 <rect class="b-ext" x="660" y="420" width="280" height="136" rx="10"/>
 <text class="t-name" x="676" y="448">NVIDIA PAIR cluster</text>
 <text class="t-type" x="676" y="466">[External system, unmodified]</text>
@@ -93,7 +93,7 @@
 <path class="edge" d="M430 350V380H200V420" marker-end="url(#a)"/>
 <text class="t-rel" x="240" y="372">boot claim, D25 grant</text>
 <path class="edge" d="M500 350V420" marker-end="url(#a)"/>
-<text class="t-rel" x="508" y="404">advertises mcl-nvidia-pair/chat</text>
+<text class="t-rel" x="508" y="404">advertises its procedures</text>
 <path class="edge" d="M570 350V390H800V420" marker-end="url(#a)"/>
 <text class="t-rel" x="578" y="366">POST /v1/chat/completions on loopback;</text>
 <text class="t-rel" x="578" y="382">GET /v1/models for health</text>

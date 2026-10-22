@@ -140,10 +140,10 @@ def context():
           ["Its own procedure,", "mcl-nvidia-pair/chat, answered only", "for a realm member with the required",
            "tier; /health on 8499. It constructs", "every PAIR request itself"])
     d.box("b-mac", 60, 420, 280, 136, "macula-realm", "[Macula infrastructure]",
-          ["Issues the member token macula", "checks before a call reaches the", "handler; its D25 grant names",
-           "mcl-nvidia-pair/chat"])
+          ["Issues the member token macula", "checks before a call reaches the", "handler; its D25 grants cover",
+           "every org procedure"])
     d.box("b-mac", 360, 420, 280, 120, "Macula stations, mesh DHT", "[Macula infrastructure]",
-          ["The pinned stations are the", "bridge's entry points (QUIC); the", "DHT takes its advertisement"])
+          ["The pinned stations are the", "bridge's entry points (QUIC); the", "DHT takes its advertisements"])
     d.box("b-ext", 660, 420, 280, 136, "NVIDIA PAIR cluster", "[External system, unmodified]",
           ["LAN-scoped; its Ollama-compatible", "proxy on 127.0.0.1:11434 does the",
            "routing, scheduling and failover", "for the household's own machines"])
@@ -153,7 +153,7 @@ def context():
     d.edge("M800 134V178H550V200")
     d.text("t-rel", 690, 166, "deploys; sets realm, key, stations")
     d.edge("M430 350V380H200V420"); d.text("t-rel", 240, 372, "boot claim, D25 grant")
-    d.edge("M500 350V420"); d.text("t-rel", 508, 404, "advertises mcl-nvidia-pair/chat")
+    d.edge("M500 350V420"); d.text("t-rel", 508, 404, "advertises its procedures")
     d.edge("M570 350V390H800V420")
     d.text("t-rel", 578, 366, "POST /v1/chat/completions on loopback;")
     d.text("t-rel", 578, 382, "GET /v1/models for health")

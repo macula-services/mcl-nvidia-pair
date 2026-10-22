@@ -109,7 +109,8 @@ for trying the PAIR side against a real local install.
 
 `/health` (port 8499) reports three things: whether the configured PAIR backend
 answers, whether the service is configured to serve at all, and, from mcl_om,
-whether the realm has granted this node its procedure.
+whether the realm has granted this node its procedures, the open `info` and
+`get_limits` included.
 
 ## Licence
 
