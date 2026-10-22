@@ -32,7 +32,7 @@ info_round_trip_test_() ->
 
 %% A floor, not an exact release: the rule is only that macula 12.2 or later
 %% never runs with an mcl_om older than 0.28, so any later release satisfies it
-%% whatever major it is on -- macula 15.x (through mcl_om 1.0) is later than
+%% whatever major it is on -- macula 16.x (through mcl_om 1.4) is later than
 %% 12.2. Comparing major and minor as a pair is that "or later"; matching the
 %% major alone pinned the test to the 12 line and made a correct upgrade red.
 at_least({text, Vsn}, Floor) ->
