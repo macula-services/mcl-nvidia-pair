@@ -33,8 +33,8 @@ This is an early, unfinished service. Read this section before anything else.
 **What exists and is tested:** the code for one narrow path (a chat request in, a
 response out), a gate that lets only members of one realm call it, and a
 per-caller rate limit. Its `mcl_om ~> 1.4` resolves to mcl_om 1.4 on macula 16.0
-(wire 1.0): it compiles there and all 54 of its unit tests pass (read on 20 October
-2026). Those tests replace NVIDIA PAIR and the mesh with stand-ins.
+(wire 1.0): it compiles there and all 54 of its unit tests pass. Those tests
+replace NVIDIA PAIR and the mesh with stand-ins.
 
 **What has not happened yet:**
 
