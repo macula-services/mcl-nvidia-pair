@@ -136,9 +136,9 @@ def context():
           ["A person or program on the mesh", "holding a realm-signed member token"], person=True)
     d.box("b-per", 660, 30, 280, 104, "Service operator", "[Person]",
           ["Runs the bridge on a machine that", "is already a PAIR cluster member"], person=True)
-    d.box("b-sys", 360, 200, 280, 150, "mcl-nvidia-pair", "[mcl_om mesh service, own box]",
-          ["One procedure, mcl-nvidia-pair/chat,", "answered only for a realm member with",
-           "the required tier; /health on 8499. It", "constructs every PAIR request itself"])
+    d.box("b-sys", 360, 200, 280, 170, "mcl-nvidia-pair", "[mcl_om mesh service, own box]",
+          ["One procedure of its own,", "mcl-nvidia-pair/chat, answered only", "for a realm member with the required",
+           "tier; /health on 8499. It constructs", "every PAIR request itself"])
     d.box("b-mac", 60, 420, 280, 136, "macula-realm", "[Macula infrastructure]",
           ["Issues the member token macula", "checks before a call reaches the", "handler; its D25 grant names",
            "mcl-nvidia-pair/chat"])
