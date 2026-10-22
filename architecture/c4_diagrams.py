@@ -143,7 +143,7 @@ def context():
           ["Issues the member token macula", "checks before a call reaches the", "handler; its D25 grant names",
            "mcl-nvidia-pair/chat"])
     d.box("b-mac", 360, 420, 280, 120, "Macula stations, mesh DHT", "[Macula infrastructure]",
-          ["Two pinned stations are the", "bridge's entry points (QUIC); the", "DHT takes its advertisement"])
+          ["The pinned stations are the", "bridge's entry points (QUIC); the", "DHT takes its advertisement"])
     d.box("b-ext", 660, 420, 280, 136, "NVIDIA PAIR cluster", "[External system, unmodified]",
           ["LAN-scoped; its Ollama-compatible", "proxy on 127.0.0.1:11434 does the",
            "routing, scheduling and failover", "for the household's own machines"])
@@ -202,7 +202,7 @@ def components():
     d.edge("M32 130H20V602H32"); d.text("t-rel", 26, 400, "boots on", anchor="middle", rotate=-90)
     d.edge("M160 662V728"); d.text("t-rel", 168, 690, "reads the identity key")
     d.text("t-desc", 40, 856, "config/sys.config.src fixes the org, mcl-nvidia-pair, which names the procedure and the D25 grant, and")
-    d.text("t-desc", 40, 874, "pins the realm key and the two station node ids. No store: this service keeps only the limiter's ETS table,")
+    d.text("t-desc", 40, 874, "pins the realm key. No store: this service keeps only the limiter's ETS table,")
     d.text("t-desc", 40, 892, "so it mounts one volume, /etc/mcl/secrets, and nothing else.")
     d.legend(930, boundary=False)
     d.write()

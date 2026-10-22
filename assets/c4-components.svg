@@ -118,7 +118,7 @@
 <path class="edge" d="M160 662V728" marker-end="url(#a)"/>
 <text class="t-rel" x="168" y="690">reads the identity key</text>
 <text class="t-desc" x="40" y="856">config/sys.config.src fixes the org, mcl-nvidia-pair, which names the procedure and the D25 grant, and</text>
-<text class="t-desc" x="40" y="874">pins the realm key and the two station node ids. No store: this service keeps only the limiter's ETS table,</text>
+<text class="t-desc" x="40" y="874">pins the realm key. No store: this service keeps only the limiter's ETS table,</text>
 <text class="t-desc" x="40" y="892">so it mounts one volume, /etc/mcl/secrets, and nothing else.</text>
 <rect class="b-sys" x="24" y="930" width="22" height="14" rx="3"/>
 <text class="t-leg" x="54" y="942">In scope</text>

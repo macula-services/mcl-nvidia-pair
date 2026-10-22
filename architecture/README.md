@@ -20,7 +20,7 @@ configured to serve at all.
 | Realm member | Person | A person or program on the mesh holding a realm-signed member token. Its call is checked by macula before the handler runs |
 | Service operator | Person | Runs the bridge on a machine that is already a member of the PAIR cluster, and supplies the realm, its public key and the pinned stations |
 | macula-realm | Macula infrastructure | Issues the member token macula checks before a call reaches the handler; its D25 grant names `mcl-nvidia-pair/chat` for this node |
-| Macula stations, mesh DHT | Macula infrastructure | The bridge dials out to two pinned stations over QUIC, and the mesh DHT takes the capability it advertises |
+| Macula stations, mesh DHT | Macula infrastructure | The bridge dials out to the pinned stations over QUIC, and the mesh DHT takes the capability it advertises |
 | NVIDIA PAIR cluster | External system | Unmodified and LAN-scoped; its Ollama-compatible proxy on `127.0.0.1:11434` does the routing, scheduling and failover for the household's own machines |
 
 The bridge is the only way in: a realm caller reaches `chat` and nothing else,
@@ -45,11 +45,12 @@ stays on the LAN and is not reachable from the realm.
 | Host environment | environment | `MCL_REALM`, `MCL_REALM_KEY`, `MACULA_STATION_SEEDS` and `MACULA_STATION_NODE_IDS` are required; `MCL_HEALTH_PORT` is 8499. The identity key is at `/etc/mcl/secrets/identity.key` |
 
 `config/sys.config.src` fixes the org, `mcl-nvidia-pair`, which names the
-procedure and the D25 grant, and pins the realm key and the two station node
-ids. `pair_base_url` and `pair_timeout_ms` are application env with defaults in
+procedure and the D25 grant, and pins the realm key. `pair_base_url` and `pair_timeout_ms` are application env with defaults in
 `chat_to_pair`, `http://127.0.0.1:11434` and 120000 ms;
 `deploy/docker-compose.yml` sets neither. The service keeps no store, so it
 mounts one volume, `/etc/mcl/secrets`, and nothing else.
+
+**Where the station list comes from.** It is not in `config/sys.config.src`: `mcl_om` reads `MACULA_STATION_SEEDS` and `MACULA_STATION_NODE_IDS` from the environment at boot, paired index for index, so this repository pins no station and the list may be any length.
 
 ## Drawing them
 
@@ -69,5 +70,5 @@ plain classes plus a `prefers-color-scheme` dark block, never CSS custom
 properties, which `rsvg-convert` renders black.
 
 The check that keeps them here is the `c4-model` job in
-`.github/workflows/build-push.yml`. It is red until both files exist and are
+`.github/workflows/c4-model.yml`. It is red until both files exist and are
 shown, and it stays red if either one goes missing.
