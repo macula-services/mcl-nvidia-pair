@@ -62,7 +62,7 @@ Macula realm  <--(macula 12 RPC, realm members only)-->  mcl-nvidia-pair  <--(lo
   (wide area, post-quantum)                                (this repo)          (unmodified, LAN only)
 ```
 
-- **Realm side:** it offers one procedure of its own, `mcl-nvidia-pair/chat`, to the realm. Macula
+- **Realm side:** it offers its own procedure, `mcl-nvidia-pair/chat`, to the realm. Macula
   admits a call only with a membership token the realm signed, carrying the
   required tier (`member/email-verified` by default). The check happens in
   macula before the call reaches this service's code.
@@ -71,17 +71,19 @@ Macula realm  <--(macula 12 RPC, realm members only)-->  mcl-nvidia-pair  <--(lo
   to PAIR, no pairing, no extra certificates. That is also why it must run on a
   machine that is already a member of the PAIR cluster.
 
-It implements exactly one operation and builds the outbound request itself. It
+It builds the outbound request itself. It
 never forwards a caller's path, so PAIR's own admin surface (`/api/pull`,
 `/api/delete`, engine control) is not reachable from the realm.
 
 How the design was arrived at, and what it rejected:
 [`docs/DESIGN.md`](docs/DESIGN.md).
 
-Like every mcl service, it also answers `mcl-nvidia-pair/info`, which mcl_om adds: its
+Like every mcl service, it also answers the `info` and `get_limits` procedures
+that mcl_om adds under the org, both open. `mcl-nvidia-pair/info` reports its
 name, version and description, its org and claim labels, node id, the macula
-and mcl_om versions, uptime, the health word and the procedures it advertises.
-Open to any mesh caller, public facts only.
+and mcl_om versions, uptime, the health word and the procedures it advertises;
+`mcl-nvidia-pair/get_limits` reports the call limits and current-window stats
+for a named procedure or for the declared set. `capabilities/0` is the list.
 
 ## Layout
 

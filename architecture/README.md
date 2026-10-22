@@ -3,7 +3,7 @@
 *This exists so a reader can see what mcl-nvidia-pair talks to, and what it is
 made of, without reading it.*
 
-**Status: a tested skeleton, never yet in service.** One procedure of its own,
+**Status: a tested skeleton, never yet in service.** Its own procedure,
 `mcl-nvidia-pair/chat`, is built and unit-tested with PAIR and the mesh stood
 in for; it has never forwarded a live request from the mesh to a real PAIR
 cluster, no realm member has passed its gate end to end, and it is not deployed
@@ -16,14 +16,14 @@ configured to serve at all.
 
 | Element | Kind | Role |
 | --- | --- | --- |
-| mcl-nvidia-pair | In scope | One procedure of its own, `mcl-nvidia-pair/chat`, answered only for a realm member carrying the required tier; `/health` on 8499. It builds every request to PAIR itself |
+| mcl-nvidia-pair | In scope | Its own procedure, `mcl-nvidia-pair/chat`, answered only for a realm member carrying the required tier; `/health` on 8499. It builds every request to PAIR itself |
 | Realm member | Person | A person or program on the mesh holding a realm-signed member token. Its call is checked by macula before the handler runs |
 | Service operator | Person | Runs the bridge on a machine that is already a member of the PAIR cluster, and supplies the realm, its public key and the pinned stations |
 | macula-realm | Macula infrastructure | Issues the member token macula checks before a call reaches the handler; its D25 grant names `mcl-nvidia-pair/chat` for this node |
 | Macula stations, mesh DHT | Macula infrastructure | The bridge dials out to the pinned stations over QUIC, and the mesh DHT takes the capability it advertises |
 | NVIDIA PAIR cluster | External system | Unmodified and LAN-scoped; its Ollama-compatible proxy on `127.0.0.1:11434` does the routing, scheduling and failover for the household's own machines |
 
-The bridge is the only way in: a realm caller reaches `chat` and nothing else,
+The bridge is the only way in: a realm caller reaches `chat`,
 because the request is built here and no caller-supplied path is ever
 forwarded. PAIR's own admin surface, `/api/pull` and `/api/delete` included,
 stays on the LAN and is not reachable from the realm.
@@ -34,7 +34,7 @@ stays on the LAN and is not reachable from the realm.
 
 | Component | Technology | Responsibility |
 | --- | --- | --- |
-| `mcl_nvidia_pair_service` | Erlang, the `mcl_om_service` behaviour | The six callbacks `mcl_om` resolves by name at startup. One capability, `chat`, gated `realm_member_required` with the realm key id and the tier `member/email-verified` by default. `identity_spec/0` claims no topic authority |
+| `mcl_nvidia_pair_service` | Erlang, the `mcl_om_service` behaviour | The six callbacks `mcl_om` resolves by name at startup. Its own procedure is `mcl-nvidia-pair/chat`, gated `realm_member_required` with the realm key id and the tier `member/email-verified` by default; `mcl-om` adds `mcl-nvidia-pair/info` and `mcl-nvidia-pair/get_limits`, both open; `capabilities/0` is the list. `identity_spec/0` claims no topic authority |
 | `mcl_nvidia_pair_app` | OTP application | `mcl_om:boot/1` wires the mesh, the realm identity and `/health`, then starts the service. There is no store |
 | `mcl_nvidia_pair_mesh_rpc` | Erlang, the `macula_response` behaviour | `handle_request/2` folds the payload to binary keys, reads the wire-authenticated `caller`, asks the limiter, then forwards exactly one chat to `chat_to_pair`. Every reply string is tagged text |
 | `throttle_pair_callers` | gen_server, ETS | A fixed window per caller, 20 calls in 60 s by default. A rejected call still counts (fail-closed), closed windows are swept every 60 s, and the table is in memory on one node, not a distributed limiter |

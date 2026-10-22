@@ -137,7 +137,7 @@ def context():
     d.box("b-per", 660, 30, 280, 104, "Service operator", "[Person]",
           ["Runs the bridge on a machine that", "is already a PAIR cluster member"], person=True)
     d.box("b-sys", 360, 200, 280, 170, "mcl-nvidia-pair", "[mcl_om mesh service, own box]",
-          ["One procedure of its own,", "mcl-nvidia-pair/chat, answered only", "for a realm member with the required",
+          ["Its own procedure,", "mcl-nvidia-pair/chat, answered only", "for a realm member with the required",
            "tier; /health on 8499. It constructs", "every PAIR request itself"])
     d.box("b-mac", 60, 420, 280, 136, "macula-realm", "[Macula infrastructure]",
           ["Issues the member token macula", "checks before a call reaches the", "handler; its D25 grant names",
@@ -157,7 +157,7 @@ def context():
     d.edge("M570 350V390H800V420")
     d.text("t-rel", 578, 366, "POST /v1/chat/completions on loopback;")
     d.text("t-rel", 578, 382, "GET /v1/models for health")
-    d.text("t-desc", 40, 600, "The bridge is the only way in: a realm caller reaches chat and nothing else, because the")
+    d.text("t-desc", 40, 600, "The bridge is the only way in: a realm caller reaches chat, because the")
     d.text("t-desc", 40, 618, "request is built here and no caller-supplied path is ever forwarded. PAIR's own admin")
     d.text("t-desc", 40, 636, "surface, /api/pull and /api/delete included, stays on the LAN and is not reachable from the realm.")
     d.legend(660, boundary=False)
@@ -167,9 +167,10 @@ def context():
 def components():
     d = Diagram("c4-components.svg", "mcl-nvidia-pair components", 1000, 960)
     d.bound(16, 40, 968, 660, "mcl-nvidia-pair [Container]")
-    d.box("b-cmp", 32, 70, 456, 120, "mcl_nvidia_pair_service", "[mcl_om_service behaviour]",
-          ["The six callbacks mcl_om resolves by name at", "startup. One capability, chat, gated",
-           "realm_member_required with the realm key id"], code=True)
+    d.box("b-cmp", 32, 70, 456, 136, "mcl_nvidia_pair_service", "[mcl_om_service behaviour]",
+          ["The six callbacks mcl_om resolves by name at", "startup. Its own procedure, mcl-nvidia-pair/chat,",
+           "is gated realm_member_required. mcl-om adds info",
+           "and get_limits, both open; capabilities/0 is the list."], code=True)
     d.box("b-cmp", 512, 70, 456, 104, "mcl_nvidia_pair_app", "[OTP application]",
           ["mcl_om:boot/1 wires the mesh, the realm", "identity and /health, then starts the service"], code=True)
     d.box("b-sys", 32, 214, 456, 140, "mcl_nvidia_pair_mesh_rpc", "[macula_response handler]",
