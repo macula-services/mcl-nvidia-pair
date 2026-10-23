@@ -26,7 +26,7 @@
   <strong>A bridge between a household's own NVIDIA PAIR cluster and a Macula realm</strong>
 </p>
 
-## Status: measured end to end, not yet released
+## Status: measured end to end, released as v0.1.0
 
 **Measured 23 October 2026** from a second machine, against this bridge running
 beside an unmodified PAIR install on its own host (CPU inference; that host's
@@ -47,7 +47,8 @@ stand-ins and runs in CI on every push.
 
 **What has not happened yet:**
 
-- No release: no `v*` tag, no signed image, no digest pin in the fleet.
+- The fleet entry lands with the release: `v0.1.0`'s image is signed and
+  attested, and macula-fleet pins that digest on the box that runs PAIR.
 - One bridge per cluster, no cluster introspection, no redundancy, and no
   measurement beyond the three claims above.
 - The rate limit is per caller NODE, not per person: one member with three
