@@ -70,5 +70,19 @@
     {macula, [
         {crypto_profile, pq_hybrid}
     ]},
+    %% ==========================================================================
+    %% WHERE PAIR LISTENS, AND WHY THIS IS NOT THE OLLAMA PORT
+    %% ==========================================================================
+    %%
+    %% PAIR fronts the engines it adopts: the Ollama facade wants
+    %% 127.0.0.1:11434 and, when the Ollama it adopted already holds that
+    %% port (the lab box's does), PAIR serves the same facade on 11435. The
+    %% bridge must talk to PAIR's facade, not to Ollama directly: pointing it
+    %% at 11434 reaches the engine and bypasses the router, which works on one
+    %% machine and silently stops working the moment there is a second.
+    {chat_to_pair, [
+        {pair_base_url, "${PAIR_BASE_URL}"},
+        {pair_timeout_ms, 180000}
+    ]},
     {kernel, [{logger_level, info}]}
 ].
