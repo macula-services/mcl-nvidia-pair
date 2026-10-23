@@ -62,6 +62,17 @@ ENV MCL_NODE_NAME=mcl_nvidia_pair
 ENV MCL_NODE_HOST=127.0.0.1
 ENV MCL_COOKIE=mcl_nvidia_pair
 ENV MCL_HEALTH_PORT=8499
+# Where PAIR's own Ollama-compatible facade listens on this host. 11435 is
+# where PAIR serves it when the Ollama it adopted already holds 11434; a box
+# with no local Ollama gets 11434. The bridge must reach PAIR's facade and
+# never the engine behind it, so this is not the same thing as "the Ollama
+# port" and a deploy sets it.
+ENV PAIR_BASE_URL=http://127.0.0.1:11435
+# The per-caller limit (throttle_pair_callers). Shipped defaults, overridable
+# per deploy: they are a property of the box's hardware budget, not of the
+# code. sys.config.src substitutes both, so both must always resolve.
+ENV PAIR_MAX_PER_WINDOW=20
+ENV PAIR_WINDOW_SECONDS=60
 
 VOLUME ["/etc/mcl/secrets"]
 

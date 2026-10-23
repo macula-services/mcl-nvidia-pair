@@ -63,6 +63,17 @@ services:
       # which box. MCL_BOX comes from the host that deploys it.
       - MCL_SERVICE_NAME=mcl-nvidia-pair
       - MCL_BOX=${MCL_BOX:-}
+      # PAIR's own Ollama-compatible facade on this host. The image default
+      # (11435) is right for a box whose Ollama holds 11434, which is the shape
+      # PAIR produces when it adopts one; a box with no local Ollama serves
+      # 11434 instead, and a bridge pointed at the engine rather than the
+      # router works on one machine and stops working on the second.
+      - PAIR_BASE_URL=${PAIR_BASE_URL:-http://127.0.0.1:11435}
+      # The per-caller limit. Shipped defaults in the image (20 per 60 s); a
+      # deploy names its own here. The live test reads the same value, so it
+      # asserts the number this container enforces.
+      - PAIR_MAX_PER_WINDOW=${PAIR_MAX_PER_WINDOW:-20}
+      - PAIR_WINDOW_SECONDS=${PAIR_WINDOW_SECONDS:-60}
 
 # The identity volume, NAMED HERE rather than left to the project name, so a
 # `docker compose -p` with a different name reuses the same key instead of

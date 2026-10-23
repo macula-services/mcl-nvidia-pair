@@ -84,5 +84,23 @@
         {pair_base_url, "${PAIR_BASE_URL}"},
         {pair_timeout_ms, 180000}
     ]},
+    %% ==========================================================================
+    %% THE PER-CALLER LIMIT, AND WHY IT IS AN ENVIRONMENT VARIABLE
+    %% ==========================================================================
+    %%
+    %% macula has no inbound throttle at any layer, so this service is the only
+    %% thing standing between one member's loop and someone's household
+    %% hardware. The numbers belong to the deployment, not to the code: a box
+    %% with one GPU and a box with three want different ones, and changing them
+    %% must not require a rebuild.
+    %%
+    %% The image sets the shipped defaults (20 per caller per 60 s); a deploy
+    %% that wants others passes these two. The live test is told the same value
+    %% as the bridge (`PAIR_MAX_PER_WINDOW'), so what it asserts is what this
+    %% node enforces.
+    {throttle_pair_callers, [
+        {max_per_window, ${PAIR_MAX_PER_WINDOW}},
+        {window_seconds, ${PAIR_WINDOW_SECONDS}}
+    ]},
     {kernel, [{logger_level, info}]}
 ].
