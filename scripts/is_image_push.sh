@@ -4,16 +4,21 @@
 #
 #   scripts/is_image_push.sh <before-sha> <after-sha>
 #
-# It builds UNLESS it can show that every changed path is documentation.
-# A push to main rebuilds :latest and watchtower rolls every box watching it,
-# so a README edit is not worth a restart. But `paths-ignore' got the other
-# half wrong: on the push that CREATES a branch GitHub has nothing to compare
-# against and evaluates the filter on the head commit alone, so a first push
-# ending in a docs commit built no image at all.
+# It builds UNLESS it can show that every changed path is documentation: Markdown,
+# anything under docs/, the images under assets/, and the licence. A documentation
+# push publishes an image nobody runs, so it is not worth the runner.
+#
+# Nobody follows :main or :latest. A main push publishes :main and :<sha>, and every
+# box runs the `<semver>@sha256:<digest>` its release pinned in macula-fleet, never a
+# moving tag (macula-fleet edge/gitops/release-targets:32, README.md:40). But
+# `paths-ignore' got the other half wrong: on the push that CREATES a branch GitHub
+# has nothing to compare against and evaluates the filter on the head commit alone,
+# so a first push ending in a docs commit built no image at all.
 #
 # So every case this script cannot read is a build: no before sha (a manual
 # run), the all-zeros sha (a new branch or tag), a before sha that is not in
 # the history (a force push), and an empty diff.
+# Tested by scripts/is_image_push_test.sh.
 set -eu
 
 BEFORE="${1:-}"
@@ -31,8 +36,8 @@ esac
 CHANGED=$(git diff --name-only "$BEFORE" "$AFTER" 2>/dev/null) || build true
 [ -n "$CHANGED" ] || build true
 
-# Documentation: any Markdown file, anything under docs/, and the licence.
-if printf '%s\n' "$CHANGED" | grep -qvE '(\.md$|^docs/|^LICENSE$)'; then
+# Documentation: any Markdown file, anything under docs/ or assets/, and the licence.
+if printf '%s\n' "$CHANGED" | grep -qvE '(\.md$|^docs/|^assets/|^LICENSE$)'; then
     build true
 fi
 build false

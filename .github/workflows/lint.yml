@@ -35,6 +35,9 @@ jobs:
                 {<<"28.4.3">>, true} -> halt(0);
                 _                    -> halt(1)
             end.'
+      # The image gate's own cases: which pushes build and which do not. It needs
+      # only sh and git, so it runs before the toolchain is used.
+      - run: scripts/is_image_push_test.sh
       - run: rebar3 lint
       - run: rebar3 eunit
       - run: rebar3 dialyzer

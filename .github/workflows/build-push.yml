@@ -2,19 +2,26 @@
 #
 # TWO CHANNELS, AND ONLY A RELEASE MOVES :latest.
 #
-#   push of v*   : publishes :<semver>, then :latest once attest signed it <- the dev fleet's deploy channel
+#   push of v*   : publishes :<semver>, then :latest once attest signed it -- a pointer to
+#                  the newest signed release; nothing in the fleet reads it
 #   push to main : publishes :main and :<sha>       <- the tip, for trying; nothing follows it
 #
-# The dev fleet (macula-fleet) runs :latest: each box's reconciler pulls it, verifies the
-# digest it resolved to (signature, SBOM, provenance) and runs that digest. So a green v* tag
-# IS the deploy, with no commit to the fleet, and a push to main deploys nothing. The semver
-# tags stay published, so a bad release can be pinned back to a known one.
+# THE FLEET DOES NOT FOLLOW A MOVING TAG. Every box runs `<semver>@sha256:<digest>`, written
+# into macula-fleet by its own release workflow and read back from the registry, never a tag
+# (macula-fleet edge/gitops/release-targets:32, README.md:40); msi00's unit carries the digest
+# with no AutoUpdate label, so its own timer leaves it alone
+# (macula-fleet edge/msi00.lab/mcl-nvidia-pair.container:10 and :41). So a green v* tag is the
+# release and the pin commit to the fleet is the deploy; a push to main deploys nothing, and
+# neither does moving :latest. The semver tags stay published, so a bad release can be pinned
+# back to a known one.
 #
-# NO PATH FILTER, ON PURPOSE. A docs-only push should not rebuild the image and
-# restart every box, but `paths-ignore' cannot be trusted with that: on the push
-# that CREATES a branch GitHub evaluates it on the head commit alone, so a first
-# push ending in a README edit silently built no image. scripts/is_image_push.sh
-# decides from the pushed range instead, and builds whenever it cannot tell.
+# NO PATH FILTER, ON PURPOSE. A docs-only push should not publish an image nobody
+# runs -- a diagram under assets/ is documentation like the prose beside it -- but
+# `paths-ignore' cannot be trusted with that: on the push that CREATES a branch
+# GitHub evaluates it on the head commit alone, so a first push ending in a README
+# edit silently built no image. scripts/is_image_push.sh decides from the pushed
+# range instead, and builds whenever it cannot tell. Its own cases are
+# scripts/is_image_push_test.sh, run by lint.yml.
 # If an image is ever missing anyway, run this workflow by hand.
 #
 # NOTE ON PUSHING THIS FILE. An HTTPS push that creates or updates anything under
@@ -30,11 +37,11 @@ on:
     tags:     ['v*']
   workflow_dispatch:
 
-# ONE IMAGE BUILD IN FLIGHT PER REF. Every push to main builds and pushes
-# :latest; without this, three quick commits run three builds that finish in
-# whatever order the runners please, and :latest ends up being whichever
-# finished LAST, not whichever was pushed last -- watchtower then rolls the
-# fleet onto an older commit and flaps. The RAG service hit exactly that live.
+# ONE IMAGE BUILD IN FLIGHT PER REF. Three quick commits to main are three builds that finish
+# in whatever order the runners please, and `:main' is one tag all of them write, so the last
+# to finish decides it. No box follows that tag -- the fleet runs a digest it pinned -- so a
+# race here costs runner minutes, not a fleet rolling onto an older commit; the group keeps it
+# to one build of a ref at a time.
 concurrency:
   group: build-and-push-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -125,9 +132,10 @@ jobs:
       image: ghcr.io/macula-services/mcl-nvidia-pair
       digest: ${{ needs.build-and-push.outputs.digest }}
 
-  # :latest is the dev fleet's deploy channel, so it moves LAST: only on a v* tag, and only once
-  # attest has signed and attested this digest. A box that pulls :latest in the window between
-  # push and signature would otherwise refuse the release (and remember that for an hour).
+  # :latest is a pointer to the newest signed release, and it moves LAST: only on a v* tag, and
+  # only once attest has signed and attested this digest. Nothing in the fleet follows it
+  # (macula-fleet README.md:40); it is there so a person can pull one image by hand without
+  # holding a digest in their head, and so it never names a digest attest has not signed.
   promote-latest:
     needs: [build-and-push, attest]
     if: startsWith(github.ref, 'refs/tags/v') && needs.build-and-push.outputs.digest != ''
