@@ -30,7 +30,10 @@ REPO=${PAIR8_REPO:-https://github.com/macula-services/mcl-nvidia-pair.git}
 WORK=${PAIR8_WORK:-$HOME/vesta-pair8}
 ENV_FILE=${PAIR8_ENV_FILE:-$HOME/.macula/secrets/mcl-nvidia-pair.env}
 NAME=${PAIR8_CONTAINER:-vesta-pair8-bridge}
-IMAGE=${PAIR8_IMAGE:-localhost/vesta-pair8-bridge:${REF}}
+# A branch name is not an image tag: `vesta/pair-8-wire' is an invalid
+# reference, so the tag is the ref with its separators flattened.
+TAG=$(printf '%s' "$REF" | tr '/:' '--')
+IMAGE=${PAIR8_IMAGE:-localhost/vesta-pair8-bridge:${TAG}}
 VOLUME=${PAIR8_VOLUME:-vesta-pair8-secrets}
 HEALTH_PORT=${PAIR8_HEALTH_PORT:-8499}
 
