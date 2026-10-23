@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 520" role="img" aria-label="mcl-nvidia-pair containers">
+<title>mcl-nvidia-pair containers</title>
+<style>
+.t-name { font-family: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 700; }
+.t-desc { font-family: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, Helvetica, Arial, sans-serif; font-size: 12.5px; }
+.t-rel { font-family: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, Helvetica, Arial, sans-serif; font-size: 11.5px; paint-order: stroke; stroke-width: 4px; stroke-linejoin: round; }
+.t-code { font-family: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 13px; font-weight: 600; }
+.t-type { font-family: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 11.5px; }
+.t-bound { font-family: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 12px; font-weight: 600; }
+.t-leg { font-family: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, Helvetica, Arial, sans-serif; font-size: 12px; }
+.edge { fill: none; stroke-width: 1.25; }
+.edge-later { fill: none; stroke-width: 1.25; stroke-dasharray: 5 4; }
+.bg { fill: #FFFFFF; }
+.b-sys { fill: #F5E9CC; stroke: #A56F0A; stroke-width: 2; }
+.b-per { fill: #E3EBF2; stroke: #3B5B7A; stroke-width: 1.25; }
+.b-mac { fill: #E6E4EE; stroke: #5E5A78; stroke-width: 1.25; }
+.b-ext { fill: #ECEFED; stroke: #8A9791; stroke-width: 1.25; }
+.b-cmp { fill: #FFFFFF; stroke: #8A9791; stroke-width: 1.25; }
+.b-later { fill: none; stroke: #8A9791; stroke-width: 1.25; stroke-dasharray: 5 4; }
+.bound { fill: none; stroke: #B3BDB8; stroke-width: 1; }
+.head { fill: #3B5B7A; }
+.t-name, .t-code { fill: #16201D; }
+.t-type, .t-bound, .t-leg { fill: #66736E; }
+.t-desc { fill: #34413C; }
+.t-rel { fill: #66736E; stroke: #FFFFFF; }
+.edge, .edge-later { stroke: #8A9791; }
+.arrowhead { fill: #8A9791; }
+@media (prefers-color-scheme: dark) {
+.bg { fill: #171F1C; }
+.b-sys { fill: #3A2E13; stroke: #E3AA3C; }
+.b-per { fill: #1D2A36; stroke: #8EB4D8; }
+.b-mac { fill: #26243A; stroke: #A9A4C8; }
+.b-ext { fill: #1C2421; stroke: #7D8B85; }
+.b-cmp { fill: #171F1C; stroke: #7D8B85; }
+.b-later { stroke: #7D8B85; }
+.bound { stroke: #4A5752; }
+.head { fill: #8EB4D8; }
+.t-name, .t-code { fill: #E6ECE9; }
+.t-type, .t-bound, .t-leg { fill: #93A09A; }
+.t-desc { fill: #C3CDC8; }
+.t-rel { fill: #93A09A; stroke: #171F1C; }
+.edge, .edge-later { stroke: #7D8B85; }
+.arrowhead { fill: #7D8B85; }
+}
+</style>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrowhead" d="M0 0L10 5L0 10z"/></marker></defs>
+<rect class="bg" x="0" y="0" width="1000" height="520"/>
+<rect class="bound" x="24" y="40" width="620" height="420" rx="12"/>
+<text class="t-bound" x="40" y="62">The box beside PAIR [OCI image, host networking]</text>
+<rect class="b-sys" x="44" y="76" width="580" height="120" rx="10"/>
+<text class="t-name" x="60" y="104">mcl-nvidia-pair service</text>
+<text class="t-type" x="60" y="122">[mcl_om mesh service, OTP 28 release, /health on 8499]</text>
+<text class="t-desc" x="60" y="146">Boots as an mcl_om service: identity key, realm admission, a mesh pool, its</text>
+<text class="t-desc" x="60" y="162">one capability and /health. Host networking is not a shortcut: the stations</text>
+<text class="t-desc" x="60" y="178">are reachable over IPv6 only, and the container reaches PAIR on 127.0.0.1.</text>
+<rect class="b-cmp" x="44" y="220" width="580" height="96" rx="10"/>
+<text class="t-name" x="60" y="248">Identity key</text>
+<text class="t-type" x="60" y="266">[Volume /etc/mcl/secrets]</text>
+<text class="t-desc" x="60" y="290">The node's own key, generated on first boot and loaded on every boot after:</text>
+<text class="t-desc" x="60" y="306">the node id the realm's Providers desk admits. A fresh volume is a new service.</text>
+<rect class="b-cmp" x="44" y="340" width="580" height="84" rx="10"/>
+<text class="t-name" x="60" y="368">/health</text>
+<text class="t-type" x="60" y="386">[TCP 8499]</text>
+<text class="t-desc" x="60" y="410">PAIR answers, the service is configured, the realm granted the procedure.</text>
+<rect class="b-ext" x="690" y="76" width="286" height="110" rx="10"/>
+<text class="t-name" x="706" y="104">PAIR, this host</text>
+<text class="t-type" x="706" y="122">[External system]</text>
+<text class="t-desc" x="706" y="146">Ollama facade 127.0.0.1:11435</text>
+<text class="t-desc" x="706" y="162">(11434 when no local Ollama),</text>
+<text class="t-desc" x="706" y="178">OpenAI facade on :8080</text>
+<rect class="b-mac" x="690" y="220" width="286" height="96" rx="10"/>
+<text class="t-name" x="706" y="248">Macula mesh</text>
+<text class="t-type" x="706" y="266">[Macula infrastructure]</text>
+<text class="t-desc" x="706" y="290">Pinned stations, QUIC</text>
+<rect class="b-mac" x="690" y="340" width="286" height="84" rx="10"/>
+<text class="t-name" x="706" y="368">ghcr.io</text>
+<text class="t-type" x="706" y="386">[External system]</text>
+<text class="t-desc" x="706" y="410">The signed image, pinned by digest</text>
+<text class="t-desc" x="706" y="426">in the fleet repository</text>
+<path class="edge" d="M624 140H690" marker-end="url(#a)"/>
+<text class="t-rel" x="657" y="132" text-anchor="middle">loopback HTTP</text>
+<path class="edge" d="M624 260H660V300H690" marker-end="url(#a)"/>
+<text class="t-rel" x="668" y="276" text-anchor="middle" transform="rotate(-90 668 276)">joins</text>
+<path class="edge" d="M690 382H644V186H624" marker-end="url(#a)"/>
+<text class="t-rel" x="652" y="330" text-anchor="middle" transform="rotate(-90 652 330)">pulled from</text>
+<path class="edge" d="M184 196V220" marker-end="url(#a)"/>
+<text class="t-rel" x="192" y="212">reads</text>
+<rect class="b-sys" x="24" y="490" width="22" height="14" rx="3"/>
+<text class="t-leg" x="54" y="502">In scope</text>
+<rect class="b-per" x="110.8" y="490" width="22" height="14" rx="3"/>
+<text class="t-leg" x="140.8" y="502">Person</text>
+<rect class="b-mac" x="184.39999999999998" y="490" width="22" height="14" rx="3"/>
+<text class="t-leg" x="214.39999999999998" y="502">Macula infrastructure</text>
+<rect class="b-ext" x="357.0" y="490" width="22" height="14" rx="3"/>
+<text class="t-leg" x="387.0" y="502">External system</text>
+<rect class="b-cmp" x="490.0" y="490" width="22" height="14" rx="3"/>
+<text class="t-leg" x="520.0" y="502">Container or component</text>
+<rect class="b-later" x="669.2" y="490" width="22" height="14" rx="3"/>
+<text class="t-leg" x="699.2" y="502">Planned, not built</text>
+<rect class="bound" x="822.0" y="490" width="22" height="14" rx="3"/>
+<text class="t-leg" x="852.0" y="502">Boundary</text>
+</svg>

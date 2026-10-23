@@ -64,6 +64,7 @@ run() ->
 %% (PAIR serves the models the box has), so it comes from the environment
 %% rather than being guessed here.
 served(Pool, Token) ->
+    io:format(user, "~nmember token grants: ~p~n", [granted(Token)]),
     {ok, Reply} = chat(Pool, Token, #{{text, <<"model">>} => {text, model()}}),
     Content = mcl_om_wire:field(<<"content">>, Reply, <<>>),
     io:format(user, "~nmember: completion ~p bytes~n  model: ~p~n  text: ~p~n",
@@ -178,6 +179,26 @@ token(Reply) ->
         _Missing -> erlang:error({no_membership_ucan, Reply})
     end.
 
+%% What the realm's token actually grants, read from its own claims. The tier
+%% is the point: this bridge admits `member/email-verified' by default, which
+%% only a node its PERSON confirmed carries, and refuses the weaker
+%% `member/device-verified' a node gets by proving its key on its own. Printing
+%% it is what makes a refusal readable instead of mysterious.
+granted(Token) ->
+    case binary:split(Token, <<".">>, [global]) of
+        [_Header, Claims, _Signature] ->
+            [Can || #{<<"can">> := Can} <- caps(Claims)];
+        _NotAUcan ->
+            not_a_ucan
+    end.
+
+caps(Claims) ->
+    Decoded = base64:decode(Claims, #{mode => urlsafe, padding => false}),
+    case jsx:decode(Decoded, [return_maps]) of
+        #{<<"cap">> := Caps} when is_list(Caps) -> Caps;
+        _NoCaps -> []
+    end.
+
 %% The payload as a macula client sends it: text keys, text values, and a
 %% `proof' over every other field. The realm verifies the signature with the
 %% key it just carried, so a key that does not match is `bad_proof' rather
@@ -220,6 +241,10 @@ stranger_pool() ->
     connect(stranger_key_path()).
 
 connect(KeyPath) ->
+    %% The SDK app owns the processes a pool calls into (the statement issuer,
+    %% the QUIC runtime): `macula:connect/2' is a plain gen_server start and
+    %% does not bring them up. Starting it twice is harmless.
+    {ok, _} = application:ensure_all_started(macula),
     {ok, Profile} = macula_crypto_profile:configured(),
     {ok, Key} = macula_node_keys:node_identity(KeyPath, Profile),
     {ok, Pool} = macula:connect(seeds(), #{node_identity => Key,
@@ -274,16 +299,19 @@ seed(HostPort, IdHex) ->
     {Host, Port} = host_port(HostPort),
     #{host => Host, port => Port, expected_node_id => binary:decode_hex(IdHex)}.
 
+%% `macula:connect/2' takes the host as the charlist the transport hands to
+%% the resolver, and the port as an integer.
 host_port(HostPort) ->
-    case string:split(HostPort, ":", trailing) of
-        [Host, Port] -> {Host, list_to_integer(Port)};
-        [Host] -> {Host, 4433}
+    case binary:split(HostPort, <<":">>, [global, trim_all]) of
+        [Host, Port] -> {binary_to_list(Host), binary_to_integer(Port)};
+        [Host] -> {binary_to_list(Host), 4433}
     end.
 
 comma_list(Name) ->
     case os:getenv(Name) of
         false -> erlang:error({missing_env, Name});
-        Text -> [list_to_binary(string:trim(P)) || P <- string:split(Text, ",", all), P =/= ""]
+        Text -> [Part || Part <- binary:split(list_to_binary(Text), <<",">>, [global, trim_all]),
+                         Part =/= <<>>]
     end.
 
 %% Keys live outside the repository, in the operator's own secrets directory:
