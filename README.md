@@ -26,26 +26,38 @@
   <strong>A bridge between a household's own NVIDIA PAIR cluster and a Macula realm</strong>
 </p>
 
-## Status: skeleton, not yet in service
+## Status: measured end to end, not yet released
 
-This is an early, unfinished service. Read this section before anything else.
+**Measured 23 October 2026** from a second machine, against this bridge running
+beside an unmodified PAIR install on its own host (CPU inference; that host's
+GTX 1050 Ti driver is broken and was not part of the test).
 
-**What exists and is tested:** the code for one narrow path (a chat request in, a
-response out), a gate that lets only members of one realm call it, and a
-per-caller rate limit. Its `mcl_om ~> 0.28` now resolves to mcl_om 0.42 on macula 14.11 (not yet
-wire 1.0): it compiles there and all 54 of its unit tests pass (read on 20 October
-2026). Those tests replace NVIDIA PAIR and the mesh with stand-ins.
+| Claim | What the run showed |
+|-------|---------------------|
+| A realm member gets a completion | the member's token carried `member/email-verified`; `qwen2.5:3b-instruct-q4_K_M` answered `ready` (5 bytes) |
+| A node with no realm membership is refused | `{error, {call_error, <<"unauthorized">>, undefined}}` |
+| The per-caller limit trips | 20 per 60 s window, a breach seen within 20 calls |
+
+One command runs all three: `scripts/live_test_pair8.sh`. The suite lives in
+`test_live/` and outside CI's gate on purpose — it cannot pass without a
+deployed bridge.
+
+The unit suite in `test/` is the other half: it replaces PAIR and the mesh with
+stand-ins and runs in CI on every push.
 
 **What has not happened yet:**
 
-- It has never forwarded a live request from the mesh to a real PAIR cluster.
-- No realm member has ever passed its gate over the mesh. The gate relies on
-  membership tokens that macula-realm issues under macula 12; that issuance
-  exists in macula-realm's code, and nobody has yet run it end to end with this
-  service.
-- It is not deployed anywhere.
-- It does no cluster introspection, runs one bridge per cluster with no
-  redundancy, and has not been measured under load.
+- No release: no `v*` tag, no signed image, no digest pin in the fleet.
+- One bridge per cluster, no cluster introspection, no redundancy, and no
+  measurement beyond the three claims above.
+- The member key must be bound to its person *before* the node's first
+  connect. A node the realm has already admitted in its own right cannot be
+  bound afterwards (the realm answers `client_already_member`), so a key that
+  has connected once has to be replaced rather than admitted.
+
+**Revoking the test member:** `macula-cli person unbind -to <client node id>`
+ends that client's membership; ending the person, which a realm admin does on
+the Members desk, ends every client it has.
 
 ## What it is meant to become
 

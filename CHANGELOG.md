@@ -60,6 +60,26 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   (Debian trixie), pinned by dated tag and digest, instead of an Alpine builder
   and a floating `alpine:3.22` runtime. CI runs in the same build image.
 
+### Fixed
+
+- **The live test read a refusal's code from a shape the SDK does not use.**
+  `refusal_code/1` expected a map with a `code` field; a refused call arrives
+  as `{error, {call_error, Code, Detail}}` when the provider or the mesh
+  refuses it, and as `{error, Detail}` when the handler returns its own reason
+  (`macula_station_link`). Both are read now, and the stranger step and the
+  rate-limit step are asserted against them.
+- **`scripts/live_test_pair8.sh` ran the suite twice.** `--dir test_live` plus
+  `--module=...` runs the module once for each, and the suite claims a
+  member's whole rate-limit window, so the second pass started already
+  throttled and failed at its first call. It runs once, by directory.
+- **`scripts/deploy_test_bridge.sh` named one box's fleet path.** A public
+  repository carries no lab hostnames: with no `PAIR8_FLEET_UNIT` given, the
+  script now takes the first unit under the fleet's edge directory that sets
+  `MCL_REALM`.
+- **The status section reports the measurements of 23 October 2026** instead
+  of describing the service as never having run: what the member, the stranger
+  and the rate limit did, and how the test member is revoked.
+
 ### Added
 
 - The first slice, ported to macula 12 and mcl_om 0.26.3 from its predecessor

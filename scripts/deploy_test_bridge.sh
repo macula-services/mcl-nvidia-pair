@@ -48,17 +48,21 @@ REQUIRED=(MCL_REALM MCL_REALM_KEY MACULA_STATION_SEEDS MACULA_STATION_NODE_IDS)
 # The box already carries the realm and the stations, in the fleet's own unit
 # for a service that lives there. Deriving the file from it is not laziness: it
 # keeps one source of truth for values this PUBLIC repository must not hold
-# (Labs and an operator's stations are not ours to publish), and it means
-# nobody retypes a 2500-character key. A deployment whose fleet unit sits
-# elsewhere sets PAIR8_FLEET_UNIT, or writes the file itself.
-FLEET_UNIT=${PAIR8_FLEET_UNIT:-$HOME/gitops/macula-fleet/edge/msi00.lab/mcl-rag.container}
+# (a lab's stations are not ours to publish), and it means nobody retypes a
+# 2500-character key. PAIR8_FLEET_UNIT names the unit; with none given, the
+# first unit under the fleet's edge directory that carries MCL_REALM is used.
+FLEET_DIR=${PAIR8_FLEET_DIR:-$HOME/gitops/macula-fleet/edge}
+FLEET_UNIT=${PAIR8_FLEET_UNIT:-}
+[ -n "$FLEET_UNIT" ] || [ ! -d "$FLEET_DIR" ] ||
+    FLEET_UNIT=$(grep -rlE '^Environment=MCL_REALM=' --include='*.container' "$FLEET_DIR" 2>/dev/null | head -1)
 
 ensure_env_file() {
     if [ -f "$ENV_FILE" ]; then
         checked_env_file
         return
     fi
-    [ -f "$FLEET_UNIT" ] || die "no environment file at $ENV_FILE and no fleet unit at $FLEET_UNIT to derive one from"
+    [ -n "$FLEET_UNIT" ] && [ -f "$FLEET_UNIT" ] ||
+        die "no environment file at $ENV_FILE and no fleet unit under $FLEET_DIR to derive one from (set PAIR8_ENV_FILE or PAIR8_FLEET_UNIT)"
     say "derive $ENV_FILE from $(basename "$FLEET_UNIT") (values are not printed)"
     umask 077
     mkdir -p "$(dirname "$ENV_FILE")"

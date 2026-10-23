@@ -62,4 +62,7 @@ rebar3 version
 
 say "run the live test (member, stranger, rate limit)"
 cd "$HERE"
-exec rebar3 as live_test eunit --dir test_live --module=mcl_nvidia_pair_live_tests
+# `--dir' alone: the suite claims a member's whole rate-limit window, so a
+# second pass of the same module in the same window would start already
+# throttled. (`--dir X --module=M' runs it twice.)
+exec rebar3 as live_test eunit --dir test_live

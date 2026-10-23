@@ -78,7 +78,7 @@ served(Pool, Token) ->
 %% `unauthorized' rather than a timeout or a resolve miss: a stranger resolving
 %% `no_provider' would mean the test never reached the gate at all.
 refused(StrangerPoolResult) ->
-    {ok, StrangerPool} = StrangerPoolResult,
+    {ok, StrangerPool, _StrangerKey} = StrangerPoolResult,
     Result = chat(StrangerPool, undefined, #{{text, <<"model">>} => {text, model()}}),
     io:format(user, "~nstranger: ~p~n", [Result]),
     ?assertMatch({error, _}, Result),
@@ -126,9 +126,19 @@ seen(ok, Breach) ->
 seen(Seen, _Breach) ->
     Seen.
 
-%% A refusal crosses the wire as a map carrying macula's BOLT#4 `code'. This is
-%% the one shape that reads it, so a change in how mcl_om or macula present a
-%% refused call fails here loudly instead of passing silently.
+%% A refused call crosses the wire in one of the two shapes macula_station_link
+%% documents, and this is the one place that reads it, so a change in how
+%% mcl_om or macula present a refused call fails here loudly instead of passing
+%% silently:
+%%
+%%   `{error, {call_error, Code, Detail}}'  a provider or mesh refusal, its
+%%                                          BOLT#4 code as a binary
+%%   `{error, Detail}'                      the handler's own reason, carried
+%%                                          back as the `handler_error' detail
+refusal_code({error, {call_error, Code, _Detail}}) ->
+    Code;
+refusal_code({error, Detail}) when is_binary(Detail) ->
+    Detail;
 refusal_code({error, Reason}) ->
     mcl_om_wire:field(<<"code">>, Reason, undefined);
 refusal_code(_Other) ->
