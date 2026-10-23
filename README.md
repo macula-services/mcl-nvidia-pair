@@ -14,13 +14,6 @@
     <img src="assets/macula-full-light.svg" alt="Macula" width="320">
   </picture>
 </p>
----
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/macula-erl-full-dark.svg">
-    <img src="assets/macula-erl-full-light.svg" alt="Macula" width="320">
-  </picture>
-</p>
 
 <p align="center">
   <strong>A bridge between a household's own NVIDIA PAIR cluster and a Macula realm</strong>
@@ -123,6 +116,15 @@ for trying the PAIR side against a real local install.
 `/health` (port 8499) reports three things: whether the configured PAIR backend
 answers, whether the service is configured to serve at all, and, from mcl_om,
 whether the realm has granted this node its procedure.
+
+## Architecture
+
+The C4 model is in [architecture/README.md](architecture/README.md), with its
+diagrams drawn by `architecture/c4_diagrams.py` into `assets/`. Change the
+script, run it (`python3 architecture/c4_diagrams.py`), and look at the result
+before committing.
+
+![mcl-nvidia-pair system context](assets/c4-context.svg)
 
 ## Licence
 
