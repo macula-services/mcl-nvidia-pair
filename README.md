@@ -36,7 +36,7 @@ GTX 1050 Ti driver is broken and was not part of the test).
 |-------|---------------------|
 | A realm member gets a completion | the member's token carried `member/email-verified`; `qwen2.5:3b-instruct-q4_K_M` answered `ready` (5 bytes) |
 | A node with no realm membership is refused | `{error, {call_error, <<"unauthorized">>, undefined}}` |
-| The per-caller limit trips | 20 per 60 s window, a breach seen within 20 calls |
+| The per-caller limit trips | 20 per 60 s window; the burst was refused `rate_limited` on its 20th call, 19 completions served. The window is fixed and counted per caller node, so a burst across a rollover gets a fresh budget: the test asserts that a refusal was SEEN inside a 3-window budget, plus a per-window ceiling on completions, never a fixed call number |
 
 One command runs all three: `scripts/live_test_pair8.sh`. The suite lives in
 `test_live/` and outside CI's gate on purpose — it cannot pass without a
@@ -50,6 +50,8 @@ stand-ins and runs in CI on every push.
 - No release: no `v*` tag, no signed image, no digest pin in the fleet.
 - One bridge per cluster, no cluster introspection, no redundancy, and no
   measurement beyond the three claims above.
+- The rate limit is per caller NODE, not per person: one member with three
+  bound nodes gets three budgets.
 - The member key must be bound to its person *before* the node's first
   connect. A node the realm has already admitted in its own right cannot be
   bound afterwards (the realm answers `client_already_member`), so a key that

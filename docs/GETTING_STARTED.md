@@ -120,7 +120,11 @@ cluster:
 1. a realm member's call returns a completion;
 2. a node with no realm membership is refused, with macula's own `unauthorized`
    code rather than a resolve miss or a timeout;
-3. the per-caller rate limit trips.
+3. the per-caller rate limit trips. Asserted as a `rate_limited` refusal SEEN
+   inside a 3-window budget, plus a ceiling of `PAIR_MAX_PER_WINDOW`
+   completions per window the burst spanned — never as a fixed call number,
+   because the window is fixed and counted per caller node: a burst that
+   starts late in a window gets the next window's budget too.
 
     PAIR8_ENV_FILE=~/.macula/secrets/mcl-nvidia-pair.env \
     PAIR_MAX_PER_WINDOW=20 \

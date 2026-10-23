@@ -16,10 +16,12 @@
 %%% key and a working PAIR cluster, so it must never run in CI's gate. Run it
 %%% explicitly:
 %%%
-%%%     rebar3 as live_test eunit --dir test_live --module=mcl_nvidia_pair_live_tests
+%%%     rebar3 as live_test eunit --dir test_live
 %%%
 %%% or, with the environment set, `scripts/live_test_pair8.sh' (which is what
-%%% the README points a tester at).
+%%% the README points a tester at). Do NOT add `--module=' beside `--dir=' for
+%%% a directory holding one module: rebar3 runs that module twice, and the
+%%% second pass starts already throttled by the first (mcl-nvidia-pair#8).
 %%%
 %%% ## The member identity
 %%%
@@ -85,46 +87,74 @@ refused(StrangerPoolResult) ->
     ?assertEqual(<<"unauthorized">>, refusal_code(Result)),
     ok = macula:close(StrangerPool).
 
-%% 3. The rate limit trips. Counted per caller, so this burst is the member's
-%% own budget: the configured window size is the deployment's, passed to this
-%% test as the same variable the bridge was configured with, and a couple of
-%% calls past it are enough to see it. The window is fixed, so a burst that
-%% straddles a rollover would start again: `VERDICT_MAX_ATTEMPTS' bounds the
-%% retries, and the assertion is that a breach was SEEN, not where.
+%% 3. The rate limit trips. Counted per caller NODE, on a FIXED window, so a
+%% burst that straddles a rollover gets a fresh budget: the instrument is not a
+%% fixed number of calls. A slow model fits fewer calls into a window than a
+%% fast one, and a burst of `Max + k' calls on a limiter that does not exist
+%% returns without ever being refused -- which is how the first version of this
+%% test passed against a bridge with no limiter at all (mcl-nvidia-pair#8,
+%% review r1). So the burst keeps calling until it is REFUSED for
+%% `rate_limited', under two bounds: the time budget below, and a call cap.
+%%
+%% What is asserted, and what is not:
+%%   - a `rate_limited' refusal is SEEN inside the budget. A bridge with no
+%%     limiter never produces one, and this fails saying so.
+%%   - no more completions were served than the windows the burst spanned
+%%     allow. A fixed window can serve a full budget in each window a burst
+%%     touches, so the ceiling is per window, never a fixed call number.
 throttled(Pool, Token) ->
     Max = max_per_window(),
-    {Seen, Calls} = burst(Pool, Token, Max + 4),
-    io:format(user, "~nrate limit: configured ~p per window, ~p calls, "
-                    "first breach at ~p~n", [Max, Calls, Seen]),
-    ?assertEqual(ok, Seen).
+    Window = window_seconds(),
+    Cap = 3 * Max + 4,
+    Deadline = erlang:monotonic_time(millisecond) + 3 * Window * 1000,
+    Started = erlang:monotonic_time(millisecond),
+    {Seen, Served, Calls} = burst(Pool, Token, Deadline, Cap, not_seen, 0, 0),
+    Elapsed = erlang:monotonic_time(millisecond) - Started,
+    Spanned = Elapsed div (Window * 1000),
+    io:format(user, "~nrate limit: configured ~p per ~p s window; ~p calls in "
+                    "~p ms (~p whole window(s) spanned), ~p served, first "
+                    "refusal: ~p~n", [Max, Window, Calls, Elapsed, Spanned,
+                                      Served, Seen]),
+    ?assertEqual(breach_seen, Seen),
+    ?assert(Served =< Max * (Spanned + 2)).
 
 %% The number of calls one caller may make in a window: the bridge's own
 %% setting, read from the environment this test runs with, so the two cannot
-%% disagree. 20 is the service's shipped default.
+%% disagree. 20 per 60 s is the service's shipped default.
 max_per_window() ->
-    case os:getenv("PAIR_MAX_PER_WINDOW") of
-        false -> 20;
+    positive_env("PAIR_MAX_PER_WINDOW", 20).
+
+window_seconds() ->
+    positive_env("PAIR_WINDOW_SECONDS", 60).
+
+positive_env(Name, Default) ->
+    case os:getenv(Name) of
+        false -> Default;
         Text -> list_to_integer(Text)
     end.
 
-burst(Pool, Token, Wanted) ->
-    burst(Pool, Token, Wanted, 0, ok).
-
-burst(_Pool, _Token, 0, Calls, Seen) ->
-    {Seen, Calls};
-burst(Pool, Token, Left, Calls, Seen) ->
-    case chat(Pool, Token, #{{text, <<"model">>} => {text, model()}}) of
-        {ok, _} -> burst(Pool, Token, Left - 1, Calls + 1, Seen);
-        {error, _} = Breach -> {seen(Seen, Breach), Calls + 1}
+burst(_Pool, _Token, _Deadline, Cap, Seen, Served, Calls)
+  when Calls >= Cap ->
+    {Seen, Served, Calls};
+burst(Pool, Token, Deadline, Cap, Seen, Served, Calls) ->
+    case erlang:monotonic_time(millisecond) >= Deadline of
+        false -> burst_call(Pool, Token, Deadline, Cap, Served, Calls);
+        true -> {Seen, Served, Calls}
     end.
 
-seen(ok, Breach) ->
-    case refusal_code(Breach) of
-        <<"rate_limited">> -> ok;
-        _Other -> Breach
-    end;
-seen(Seen, _Breach) ->
-    Seen.
+burst_call(Pool, Token, Deadline, Cap, Served, Calls) ->
+    case chat(Pool, Token, #{{text, <<"model">>} => {text, model()}}) of
+        {ok, _Completion} ->
+            burst(Pool, Token, Deadline, Cap, not_seen, Served + 1, Calls + 1);
+        {error, _Detail} = Refusal ->
+            stop_at_refusal(Refusal, Served, Calls)
+    end.
+
+stop_at_refusal(Refusal, Served, Calls) ->
+    case refusal_code(Refusal) of
+        <<"rate_limited">> -> {breach_seen, Served, Calls + 1};
+        _AnotherCode -> {Refusal, Served, Calls + 1}
+    end.
 
 %% A refused call crosses the wire in one of the two shapes macula_station_link
 %% documents, and this is the one place that reads it, so a change in how

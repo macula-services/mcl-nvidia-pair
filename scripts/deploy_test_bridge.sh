@@ -137,13 +137,6 @@ report() {
     printf 'health: HTTP %s\n%s\n' "${code:-none}" "${body%$'\n'*}"
 }
 
-identity() {
-    podman exec "$NAME" /app/bin/mcl_nvidia_pair eval \
-        'ok = io:format("~s~n", [binary:encode_hex(element(2, macula_node_keys:node_id(mcl_om_identity:node_key())), lowercase)]).' 2>/dev/null ||
-    podman exec "$NAME" cat /etc/mcl/secrets/identity.key >/dev/null 2>&1 ||
-    die "could not read the node identity from the container"
-}
-
 case ${1:-start} in
     start)
         ensure_env_file
