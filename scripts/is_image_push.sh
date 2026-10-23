@@ -8,9 +8,10 @@
 # anything under docs/, the images under assets/, and the licence. A documentation
 # push publishes an image nobody runs, so it is not worth the runner.
 #
-# Nobody follows :main or :latest. A main push publishes :main and :<sha>, and every
-# box runs the `<semver>@sha256:<digest>` its release pinned in macula-fleet, never a
-# moving tag (macula-fleet edge/gitops/release-targets:32, README.md:40). But
+# Nobody follows :main, and :latest is not what the box runs either: msi00 pins
+# `0.1.0@sha256:<digest>' by hand with no AutoUpdate label, so a new release reaches
+# it only when a reviewed commit moves that line (macula-fleet
+# edge/msi00.lab/mcl-nvidia-pair.container:41, and :7-11 for why). But
 # `paths-ignore' got the other half wrong: on the push that CREATES a branch GitHub
 # has nothing to compare against and evaluates the filter on the head commit alone,
 # so a first push ending in a docs commit built no image at all.

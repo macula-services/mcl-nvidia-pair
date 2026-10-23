@@ -6,14 +6,14 @@
 #                  the newest signed release; nothing in the fleet reads it
 #   push to main : publishes :main and :<sha>       <- the tip, for trying; nothing follows it
 #
-# THE FLEET DOES NOT FOLLOW A MOVING TAG. Every box runs `<semver>@sha256:<digest>`, written
-# into macula-fleet by its own release workflow and read back from the registry, never a tag
-# (macula-fleet edge/gitops/release-targets:32, README.md:40); msi00's unit carries the digest
-# with no AutoUpdate label, so its own timer leaves it alone
-# (macula-fleet edge/msi00.lab/mcl-nvidia-pair.container:10 and :41). So a green v* tag is the
-# release and the pin commit to the fleet is the deploy; a push to main deploys nothing, and
-# neither does moving :latest. The semver tags stay published, so a bad release can be pinned
-# back to a known one.
+# NOTHING PINS THIS IMAGE AUTOMATICALLY. It is not a macula-fleet release target
+# (`edge/gitops/release-targets` does not name it), so msi00's pin was placed by hand in a
+# reviewed commit: `0.1.0@sha256:<digest>' at
+# macula-fleet edge/msi00.lab/mcl-nvidia-pair.container:41, with no AutoUpdate label, so the
+# box's own timer leaves it alone and a new release reaches the box only when that line moves
+# (same file, :7-11). So a green v* tag is the release and the commit that moves the pin is the
+# deploy; a push to main deploys nothing, and neither does moving :latest. The semver tags stay
+# published, so a bad release can be pinned back to a known one.
 #
 # NO PATH FILTER, ON PURPOSE. A docs-only push should not publish an image nobody
 # runs -- a diagram under assets/ is documentation like the prose beside it -- but
@@ -133,9 +133,10 @@ jobs:
       digest: ${{ needs.build-and-push.outputs.digest }}
 
   # :latest is a pointer to the newest signed release, and it moves LAST: only on a v* tag, and
-  # only once attest has signed and attested this digest. Nothing in the fleet follows it
-  # (macula-fleet README.md:40); it is there so a person can pull one image by hand without
-  # holding a digest in their head, and so it never names a digest attest has not signed.
+  # only once attest has signed and attested this digest. Nothing follows it:
+  # macula-fleet edge/msi00.lab/mcl-nvidia-pair.container:10 says the unit takes no AutoUpdate
+  # label and :41 pins a digest by hand. :latest is there so a person can pull one image by hand
+  # without holding a digest in their head, and so it never names a digest attest has not signed.
   promote-latest:
     needs: [build-and-push, attest]
     if: startsWith(github.ref, 'refs/tags/v') && needs.build-and-push.outputs.digest != ''
