@@ -38,6 +38,11 @@ jobs:
       # The image gate's own cases: which pushes build and which do not. It needs
       # only sh and git, so it runs before the toolchain is used.
       - run: scripts/is_image_push_test.sh
+      # This tree is public, so it may not name a lab machine, a home directory, a
+      # path into the private fleet repository or a node id (mcl-nvidia-pair#15).
+      # Its own cases first, then the tree itself.
+      - run: scripts/public_tree_check_test.sh
+      - run: scripts/public_tree_check.sh
       - run: rebar3 lint
       - run: rebar3 eunit
       - run: rebar3 dialyzer
