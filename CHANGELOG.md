@@ -5,6 +5,18 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-11-03
+
+### Changed
+
+- **Onto macula 18.3.0 and mcl_om 1.8.0 (mcl-nvidia-pair#13).** The service ran
+  macula 16.0.0, older than release A0 (17.2.0); release A of sealed-by-default
+  needs every fleet service on an A0-or-later build first. `rebar.config` now
+  floors `mcl_om` at `~> 1.8` and `macula` at `~> 18.3`, which resolves to
+  macula 18.3.0 and mcl_om 1.8.0. No service code changed: the unit suite, the
+  dialyzer run and the elvis ruleset are the check that the move broke nothing
+  this service calls.
+
 ## [0.1.0] - 2026-10-23
 
 ### Added

@@ -1,6 +1,6 @@
 {application, mcl_nvidia_pair, [
     {description, "Realm-scoped bridge from a Macula realm to a local NVIDIA PAIR cluster"},
-    {vsn, "0.1.0"},
+    {vsn, "0.2.0"},
     {registered, [mcl_nvidia_pair_sup]},
     {mod, {mcl_nvidia_pair_app, []}},
     {applications, [

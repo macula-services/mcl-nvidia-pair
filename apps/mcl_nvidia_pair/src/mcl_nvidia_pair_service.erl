@@ -19,7 +19,7 @@
 
 info() ->
     #{name => <<"mcl-nvidia-pair">>,
-      version => <<"0.1.0">>,
+      version => <<"0.2.0">>,
       description => <<"Realm-scoped bridge from a Macula realm to a local NVIDIA PAIR cluster">>}.
 
 start(_Opts) -> mcl_nvidia_pair_sup:start_link().
