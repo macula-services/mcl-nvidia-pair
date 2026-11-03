@@ -13,9 +13,28 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   macula 16.0.0, older than release A0 (17.2.0); release A of sealed-by-default
   needs every fleet service on an A0-or-later build first. `rebar.config` now
   floors `mcl_om` at `~> 1.8` and `macula` at `~> 18.3`, which resolves to
-  macula 18.3.0 and mcl_om 1.8.0. No service code changed: the unit suite, the
-  dialyzer run and the elvis ruleset are the check that the move broke nothing
-  this service calls.
+  macula 18.3.0 and mcl_om 1.8.0. No service code changed.
+
+### What the suite covers, and what it does not
+
+- **Covered:** the `auth` policy `capabilities()` ships is put through macula's
+  own grammar (`macula_station_link:valid_policy/1`), and the same capability
+  with that policy dropped is refused by `mcl_om_capabilities:register/1` with
+  `{auth_required, [<<"chat">>]}` — the gate macula 18 added
+  (macula#147) plus a negative control that the gate is live. Measured, not
+  assumed: pinning `mcl_om` back to 1.4.0 makes the second of the two fail and
+  everything else pass, so the pair of tests tells the two versions apart.
+- **Not covered:** the registration and the advertise themselves. They need a
+  live pool, a station link and a DHT, which no unit test has. A live call and
+  a live stream against a deployed build are the step after the image release.
+
+### Known drift, not fixed here
+
+- `config/vm.args.src` predates mcl_om 1.8's scaffold, which boots the node with
+  `-start_epmd false -dist_listen false` and a short name instead of `-name`
+  plus a cookie. A scaffold drift check will flag this file; changing it changes
+  how the release boots, so it belongs in its own package, not in a dependency
+  move.
 
 ## [0.1.0] - 2026-10-23
 

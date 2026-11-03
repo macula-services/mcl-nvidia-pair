@@ -87,6 +87,36 @@ announces_chat_gated_on_realm_membership_test_() ->
                        ?SERVICE:capabilities())]
      end}.
 
+%% THE POLICY THE SERVICE SHIPS IS ONE MACULA 18 WILL ACTUALLY ENFORCE.
+%% macula#147 is the one mesh-facing contract 18.0 changed: `advertise/5'
+%% refuses a handler-bearing capability that names no `auth' policy, and the
+%% policy it does name has to be a shape the station link's own grammar admits.
+%% This asks macula, so the answer is macula's and not this file's opinion of it.
+%% What it still cannot reach is the registration itself: `mcl_om_capabilities'
+%% advertises over a live pool and a DHT, which no unit test has.
+announced_policy_is_one_macula_accepts_test_() ->
+    {setup, fun realm_key_configured/0, fun unconfigure/1,
+     fun(_KeyId) ->
+        [fun() ->
+             [?assertEqual(ok, macula_station_link:valid_policy(Policy))
+              || #{auth := Policy} <- ?SERVICE:capabilities()]
+         end]
+     end}.
+
+%% ...and the gate that asks for it is live, not a paragraph: the same
+%% capability with its policy dropped is refused by mcl_om 1.8 in the caller,
+%% before anything reaches the mesh, and the refusal names the capability.
+%% Without this, the test above would pass just as well if nothing checked.
+auth_policy_cannot_be_omitted_test_() ->
+    {setup, fun realm_key_configured/0, fun unconfigure/1,
+     fun(_KeyId) ->
+        [fun() ->
+             [Cap] = ?SERVICE:capabilities(),
+             ?assertError({auth_required, [<<"chat">>]},
+                          mcl_om_capabilities:register([maps:remove(auth, Cap)]))
+         end]
+     end}.
+
 %% `member/email-verified' is what macula-realm puts in a member token by
 %% default; a deployment that wants another tier says so explicitly.
 required_can_is_configurable_test_() ->
